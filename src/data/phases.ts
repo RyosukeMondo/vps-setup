@@ -826,27 +826,27 @@ const risks: Section = {
     {
       type: 'mermaid',
       diagram: `gantt
-    title 手動アプローチ (合計 315 分)
+    title Manual Approach (315 min total)
     dateFormat HH:mm
     axisFormat %H:%M
-    section 手動アプローチ
-    調査とドキュメント確認    :t1, 00:00, 60m
-    ツールインストール         :t2, 01:00, 45m
-    SSHキーのセットアップ     :t3, 01:45, 30m
-    VPS契約                   :t4, 02:15, 30m
-    Dockerインストール         :t5, 02:45, 60m
-    Caddy TLS設定              :t6, 03:45, 90m`,
+    section Manual (315 min)
+    Research     :t1, 00:00, 60m
+    Tools        :t2, 01:00, 45m
+    SSH          :t3, 01:45, 30m
+    VPS          :t4, 02:15, 30m
+    Docker       :t5, 02:45, 60m
+    Caddy TLS    :t6, 03:45, 90m`,
     },
     {
       type: 'mermaid',
       diagram: `gantt
-    title AI委任アプローチ (合計 50 分)
+    title AI-Delegated (50 min total)
     dateFormat HH:mm
     axisFormat %H:%M
-    section AI委任
-    Phase 1-2 ローカル        :a1, 00:00, 20m
-    Phase 3 VPS接続           :a2, 00:20, 15m
-    Phase 4 Claude自動化       :a3, 00:35, 15m`,
+    section AI-Delegated (50 min)
+    Ph1 local    :a1, 00:00, 20m
+    Ph3 VPS      :a2, 00:20, 15m
+    Ph4 Claude   :a3, 00:35, 15m`,
     },
     {
       type: 'ascii',
