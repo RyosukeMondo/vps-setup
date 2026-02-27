@@ -47,12 +47,17 @@ export interface Section {
 }
 
 // ─── ASCII art helpers ────────────────────────────────────────────────────────
-/** Display width of a string: CJK/fullwidth/emoji chars count as 2 columns. */
+/** Display width of a string: CJK/fullwidth/emoji chars count as 2 columns.
+ *  Also counts Unicode "East Asian Ambiguous" chars that CJK monospace fonts
+ *  (e.g. M PLUS 1 Code, MS Gothic) render at full-width: arrows (←↑→↓),
+ *  middle dot (·), and common symbol blocks. */
 function cjkWidth(s: string): number {
   let w = 0;
   for (const ch of [...s]) {
     const cp = ch.codePointAt(0) ?? 0;
     if (
+      cp === 0x00B7               || // · MIDDLE DOT (EA Ambiguous → 2 in CJK font)
+      (cp >= 0x2190 && cp <= 0x21FF) || // ← ↑ → ↓ Arrows (EA Ambiguous → 2)
       (cp >= 0x1100  && cp <= 0x115F)  || // Hangul Jamo
       (cp >= 0x2E80  && cp <= 0x303E)  || // CJK Radicals + Symbols
       (cp >= 0x3041  && cp <= 0xA4CF)  || // Hiragana … Yi Radicals
