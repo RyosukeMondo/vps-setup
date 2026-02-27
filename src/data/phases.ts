@@ -50,37 +50,37 @@ export interface Section {
 const overview: Section = {
   id: 'overview',
   navLabel: '[ OVERVIEW ]',
-  title: 'System Architecture Overview',
+  title: 'システムアーキテクチャ概要',
   blocks: [
     {
       type: 'mermaid',
       diagram: `flowchart LR
-    subgraph LOCAL["💻 LOCAL MACHINE"]
+    subgraph LOCAL["💻 ローカルマシン"]
         direction TB
         CC["Claude Code"]
-        KEYS["~/.ssh/\nxvps.pem · id_ed25519"]
-        CONFIG["~/.claude/skills/\nCLAUDE.md"]
+        KEYS["~/.ssh/<br/>xvps.pem · id_ed25519"]
+        CONFIG["~/.claude/skills/<br/>CLAUDE.md"]
     end
 
-    subgraph NET["🌐 INTERNET"]
+    subgraph NET["🌐 インターネット"]
         direction TB
-        DNS["DNS A Record\ndomain.xvps.jp → VPS IP"]
-        GH["GitHub\nPages / Actions"]
+        DNS["DNS Aレコード<br/>domain.xvps.jp → VPS IP"]
+        GH["GitHub<br/>Pages / Actions"]
     end
 
     subgraph VPS["🖥️ XSERVER VPS · Ubuntu 24.04"]
         direction TB
-        UBUNTU["root user\n(initial SSH)"]
+        UBUNTU["deploy ユーザー<br/>（Phase 4以降）"]
         subgraph DOCKER["⚙ Docker Engine"]
-            CADDY["Caddy\n:80 / :443\n(TLS auto cert)"]
-            NGINX["Nginx\n:8080\n(sample app)"]
+            CADDY["Caddy<br/>:80 / :443<br/>（TLS自動取得）"]
+            NGINX["Nginx<br/>:8080<br/>（サンプルアプリ）"]
         end
         UBUNTU --- DOCKER
-        CADDY -->|"reverse proxy"| NGINX
+        CADDY -->|"リバースプロキシ"| NGINX
     end
 
     CC -->|"SSH 🔒"| UBUNTU
-    DNS -.->|"A record"| VPS
+    DNS -.->|"Aレコード"| VPS
     GH -.->|"CI / Pages"| NET
 
     style LOCAL  fill:#1a2332,stroke:#58a6ff,color:#e6edf3
@@ -90,39 +90,39 @@ const overview: Section = {
     style CADDY  fill:#1a2d1a,stroke:#39d353,color:#e6edf3
     style NGINX  fill:#21262d,stroke:#30363d,color:#e6edf3`,
     },
-    { type: 'sectionTitle', text: '◆ Critical Path · 4-Phase Execution Plan' },
+    { type: 'sectionTitle', text: '◆ クリティカルパス · 4フェーズ実行計画' },
     {
       type: 'mermaid',
       diagram: `flowchart TD
-    A([🖥️ START]) --> P1
+    A([🖥️ スタート]) --> P1
 
-    subgraph P1["PHASE 1 · Local Foundation"]
+    subgraph P1["PHASE 1 · ローカル環境"]
         direction TB
-        P1A["👤 Install Node.js only"] --> P1B["👤 npm install -g @anthropic-ai/claude-code"]
-        P1B --> P1C["🤖 Claude Code: brew/apt · git · gh · docker · mise"]
-        P1C --> P1D["🤖 Claude Code: Python versions · alias · skills dir · gh auth"]
+        P1A["👤 Node.jsのみインストール"] --> P1B["👤 npm install -g @anthropic-ai/claude-code"]
+        P1B --> P1C["🤖 Claude Code: brew/winget · git · gh · docker · mise"]
+        P1C --> P1D["🤖 Claude Code: Python · エイリアス · skills · gh auth"]
     end
 
-    subgraph P2["PHASE 2 · Claude Code Reference"]
+    subgraph P2["PHASE 2 · Claude Code リファレンス"]
         direction TB
-        P2A["👤 Verify alias active"] --> P2B["👤 Verify skills dir + gh auth"]
+        P2A["👤 エイリアス動作確認"] --> P2B["👤 skillsディレクトリ・gh auth確認"]
     end
 
-    subgraph P3["PHASE 3 · Infrastructure"]
+    subgraph P3["PHASE 3 · インフラ調達"]
         direction TB
-        P3A["👤 Contract XServer VPS · Ubuntu 24.04"] --> P3B["👤 Download xvps.pem SSH key"]
-        P3B --> P3C["👤 Place key · chmod 600"]
-        P3C --> P3D["👤 Create server.md with VPS info"]
+        P3A["👤 XServer VPS契約 · Ubuntu 24.04"] --> P3B["👤 xvps.pem SSHキーをダウンロード"]
+        P3B --> P3C["👤 キーを配置 · chmod 600"]
+        P3C --> P3D["👤 server.mdにVPS情報を記入"]
     end
 
-    subgraph P4["PHASE 4 · AI Provisioning"]
+    subgraph P4["PHASE 4 · AIプロビジョニング"]
         direction TB
-        P4A["👤 Run: claude"] --> P4B["🤖 Read server.md"]
-        P4B --> P4C["🤖 Create deploy user + keys"]
-        P4C --> P4D["🤖 Disable root SSH 🔒"]
-        P4D --> P4E["🤖 Install Docker + Compose"]
-        P4E --> P4F["🤖 Deploy Caddy + Nginx"]
-        P4F --> P4G(["✅ HTTPS site LIVE"])
+        P4A["👤 claude を起動"] --> P4B["🤖 server.mdを読み込み"]
+        P4B --> P4C["🤖 deployユーザー作成・鍵登録"]
+        P4C --> P4D["🤖 root SSH無効化 🔒"]
+        P4D --> P4E["🤖 Docker・Compose インストール"]
+        P4E --> P4F["🤖 Caddy・Nginx デプロイ"]
+        P4F --> P4G(["✅ HTTPSサイト公開"])
     end
 
     P1 --> P2
@@ -136,30 +136,30 @@ const overview: Section = {
     style A fill:#21262d,stroke:#39d353,color:#39d353
     style P4G fill:#21262d,stroke:#39d353,color:#39d353`,
     },
-    { type: 'sectionTitle', text: '◆ Dependency Graph · What blocks what?' },
+    { type: 'sectionTitle', text: '◆ 依存関係グラフ · ブロック関係' },
     {
       type: 'mermaid',
       diagram: `flowchart TD
-    subgraph LOCAL["💻 Local Prerequisites"]
-        GH[gh auth login done]
-        NODE[Node.js installed]
-        VPS[XServer VPS running]
+    subgraph LOCAL["💻 ローカル前提条件"]
+        GH["gh auth login 完了"]
+        NODE["Node.js インストール済み"]
+        VPS["XServer VPS 稼働中"]
     end
 
-    subgraph SETUP["🔧 Setup Layer"]
-        SSH[SSH key in ~/.ssh/]
-        CC[Claude Code installed]
-        SMDF[server.md created]
-        SKILL[skills/vps-caddy-proxy.md]
+    subgraph SETUP["🔧 セットアップ層"]
+        SSH["SSHキー ~/.ssh/ に配置"]
+        CC["Claude Code インストール済み"]
+        SMDF["server.md 作成済み"]
+        SKILL["skills/vps-caddy-proxy.md"]
     end
 
-    subgraph REMOTE_LAYER["🖥️ Remote Layer"]
-        REMOTE[SSH to VPS works]
-        DOCKER[Docker on VPS]
+    subgraph REMOTE_LAYER["🖥️ リモート層"]
+        REMOTE["VPS SSH接続 可能"]
+        DOCKER["Docker on VPS"]
     end
 
-    CADDY[Caddy container up]
-    LIVE([🌐 HTTPS site live])
+    CADDY["Caddy コンテナ起動"]
+    LIVE(["🌐 HTTPSサイト稼働中"])
 
     GH --> SSH
     NODE --> CC
@@ -187,184 +187,212 @@ const overview: Section = {
 const phase1: Section = {
   id: 'phase1',
   navLabel: '[ PHASE 1 · LOCAL ]',
-  title: 'Phase 1 · Local Foundation &amp; Tooling',
+  title: 'Phase 1 · ローカル環境の構築',
   headerAlert: {
     variant: 'info',
-    html: '⚡ <strong>Two steps only:</strong> a 5-min human bootstrap to get Node.js running, then Claude Code handles every remaining local tool automatically.',
+    html: '⚡ <strong>2ステップのみ:</strong> Node.jsを5分でブートストラップするだけ。残りのすべてのローカルツールはClaude Codeが自動設定します。',
   },
   steps: [
-    // ── Step 1: Human-only bootstrap ─────────────────────────────────────────
+    // ── Step 1: 手動ブートストラップ ─────────────────────────────────────────
     {
       id: 'card-p1-1',
-      titleHtml: 'Bootstrap — Node.js &amp; Claude Code',
+      titleHtml: 'Node.js と Claude Code のインストール',
       badgeLabel: 'HUMAN',
       badgeVariant: 'human',
       blocks: [
         {
           type: 'alert',
           variant: 'warn',
-          html: '🔑 <strong>This is the only step requiring manual installation.</strong> Claude Code needs Node.js to run — that\'s it. Homebrew, git, docker, mise, Python versions, and GitHub auth are all delegated to Claude Code in Step 2.',
+          html: '🔑 <strong>手動インストールが必要な唯一の手順です。</strong> Claude Code の実行にはNode.jsが必要です。Homebrew・git・docker・mise・Python・GitHub認証はすべてStep 2でClaude Codeが自動設定します。',
         },
         {
           type: 'code',
-          mac: `# Install Node.js via fnm (no Homebrew needed)
+          mac: `# fnm経由でNode.jsをインストール（Homebrew不要）
 curl -fsSL https://fnm.vercel.app/install | bash
-source ~/.zshrc   # or: source ~/.bashrc
+source ~/.zshrc   # または: source ~/.bashrc
 
 fnm install 22
 fnm use 22
 node --version   # → v22.x.x
 
-# Install Claude Code
+# Claude Codeをインストール
 npm install -g @anthropic-ai/claude-code
 claude --version`,
-          win: `# PowerShell — install Node.js via winget
-winget install OpenJS.NodeJS
-# Restart terminal, then:
+          win: `# Windows Terminal（PowerShell）で実行
+# wingetでNode.jsをインストール
+winget install OpenJS.NodeJS.LTS
+
+# Windows Terminalを再起動してから:
 node --version   # → v22.x.x
 
-# Install Claude Code
+# Claude Codeをインストール
 npm install -g @anthropic-ai/claude-code
-claude --version
-
-# --- OR inside WSL2 (recommended for this guide) ---
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash -
-sudo apt-get install -y nodejs
-npm install -g @anthropic-ai/claude-code`,
+claude --version`,
         },
         {
           type: 'checks',
           items: [
-            { id: 'p1-1-a', label: 'Node.js ≥ 18 installed (<code>node --version</code>)' },
-            { id: 'p1-1-b', label: '<code>claude --version</code> returns successfully' },
-            { id: 'p1-1-c', label: 'Anthropic API key entered — <code>claude</code> starts without error' },
+            { id: 'p1-1-a', label: 'Node.js ≥ 18 インストール済み（<code>node --version</code>）' },
+            { id: 'p1-1-b', label: '<code>claude --version</code> が正常に実行できる' },
+            { id: 'p1-1-c', label: 'Anthropic APIキー入力済み — <code>claude</code> がエラーなく起動する' },
           ],
         },
       ],
     },
 
-    // ── Step 2: Claude Code automates everything else ─────────────────────────
+    // ── Step 2: Claude Codeが残りをすべて自動化 ─────────────────────────────
     {
       id: 'card-p1-2',
-      titleHtml: 'Local Environment Setup',
+      titleHtml: 'ローカル環境の自動セットアップ',
       badgeLabel: 'CLAUDE CODE',
       badgeVariant: 'claude',
       blocks: [
         {
           type: 'alert',
           variant: 'info',
-          html: '🤖 <strong>Claude Code takes over here.</strong> Run <code>claude</code> in your project directory, paste the master prompt below, and Claude will install and configure everything — including triggering <code>gh auth login</code> (you complete the browser step when prompted).',
+          html: '🤖 <strong>ここからClaude Codeに引き継ぎます。</strong> プロジェクトディレクトリで <code>claude</code> を起動し、以下のマスタープロンプトを貼り付けてください。Claudeがすべてをインストール・設定します（<code>gh auth login</code> はブラウザ操作が必要です）。',
         },
         {
           type: 'mermaid',
           diagram: `flowchart LR
-    H["👤 You\n(Step 1 done)"] --> CC
+    H["👤 あなた<br/>(Step 1完了)"] --> AUTOMATE
 
-    subgraph CC["🤖 Claude Code Automates"]
+    subgraph AUTOMATE["🤖 Claude Code が自動実行"]
         direction TB
-        A["Install Homebrew / apt"] --> B["brew install\ngit · gh · docker · mise"]
-        B --> C["mise use --global\nPython 3.9 → 3.13"]
-        C --> D["Add alias to\n~/.zshrc or ~/.bashrc"]
-        D --> E["Create ~/.claude/skills/\nvps-caddy-proxy.md"]
-        E --> F["gh auth login\n(browser — you approve)"]
-        F --> G["✅ Verify all tools"]
+        A["Homebrew / winget<br/>インストール"] --> B["brew/winget install<br/>git · gh · docker · mise"]
+        B --> C["mise use --global<br/>Python 3.9 → 3.13"]
+        C --> D["エイリアスを<br/>シェル設定に追加"]
+        D --> E["~/.claude/skills/<br/>vps-caddy-proxy.md 作成"]
+        E --> F["gh auth login<br/>（ブラウザで承認）"]
+        F --> G["✅ 全ツール確認"]
     end
 
-    style H  fill:#1a2332,stroke:#58a6ff,color:#e6edf3
-    style CC fill:#1a2d1a,stroke:#39d353,color:#e6edf3`,
+    style H        fill:#1a2332,stroke:#58a6ff,color:#e6edf3
+    style AUTOMATE fill:#1a2d1a,stroke:#39d353,color:#e6edf3`,
         },
         {
           type: 'alert',
           variant: 'danger',
-          html: '⚡ The prompt below uses <strong>--dangerously-skip-permissions</strong> mode (via alias). Claude will list all commands before executing — review them before confirming.',
+          html: '⚡ 以下のプロンプトは <strong>--dangerously-skip-permissions</strong> モード（エイリアス経由）を使用します。Claudeは実行前にコマンド一覧を表示します — 確認してから承認してください。',
         },
         {
           type: 'code',
-          common: `ローカル開発環境のセットアップを自動化してください。
+          mac: `ローカル開発環境のセットアップを自動化してください（macOS環境）。
 実行前にコマンド一覧を出力し、確認を求めてください。
 
-1. OSを確認（macOS / Linux / WSL2）し、適切なコマンドを選択してください。
+1. macOSであることを確認してください。
 
-2. パッケージマネージャーのセットアップ:
-   - macOS: Homebrewが未インストールなら自動インストール
-     /bin/bash -c "$(curl -fsSL https://brew.sh/install.sh)"
-   - Linux / WSL2: sudo apt-get update && sudo apt-get upgrade -y
+2. Homebrewのセットアップ:
+   未インストールの場合は自動インストールしてください:
+   /bin/bash -c "$(curl -fsSL https://brew.sh/install.sh)"
 
 3. コアツールを一括インストール:
-   - macOS: brew install git gh docker mise
-   - Linux / WSL2:
-     sudo apt-get install -y git docker.io
-     curl https://mise.run | sh && source ~/.bashrc
+   brew install git gh docker mise
 
-4. mise で Python をインストール:
+4. miseでPythonをインストール:
    mise use --global python@3.9 python@3.10 python@3.11 python@3.12 python@3.13
 
-5. シェル設定にエイリアスを追加 (~/.zshrc または ~/.bashrc):
+5. ~/.zshrc にエイリアスを追加:
    alias claude="claude --dangerously-skip-permissions"
-   設定を反映: source ~/.zshrc または source ~/.bashrc
+   設定を反映: source ~/.zshrc
 
-6. Claude Code スキルディレクトリとテンプレートを作成:
+6. Claude Codeスキルディレクトリとテンプレートを作成:
    mkdir -p ~/.claude/skills
    ~/.claude/skills/vps-caddy-proxy.md に
-   Caddy + Nginx の Docker Compose テンプレートを書いてください。
+   Caddy + NginxのDocker Composeテンプレートを書いてください。
 
-7. GitHub CLI 認証を実行してください:
+7. GitHub CLI認証:
    gh auth login --hostname github.com --git-protocol ssh
-   ※ブラウザが開きます。表示されたコードを入力して認証を完了してください。
+   ※ブラウザが開きます。コードを入力して認証を完了してください。
 
 8. 全ツールの動作確認（バージョンをすべて出力）:
    git --version && gh --version && docker --version && mise --version && node --version
    gh auth status
    mise list python
    ls ~/.claude/skills/`,
+          win: `ローカル開発環境のセットアップを自動化してください（Windows PowerShell環境）。
+実行前にコマンド一覧を出力し、確認を求めてください。
+
+1. Windows PowerShell環境であることを確認してください。
+
+2. wingetでコアツールをインストール:
+   winget install Git.Git
+   winget install GitHub.cli
+   winget install Docker.DockerDesktop
+   winget install jdx.mise
+   ※インストール後はPowerShellを再起動してください。
+
+3. miseでPythonをインストール:
+   mise use --global python@3.9 python@3.10 python@3.11 python@3.12 python@3.13
+
+4. PowerShellプロファイルにエイリアスを追加（$PROFILE）:
+   以下をプロファイルファイルに追記してください:
+   function claude { claude --dangerously-skip-permissions @args }
+   設定を反映: . $PROFILE
+
+5. Claude Codeスキルディレクトリとテンプレートを作成:
+   New-Item -ItemType Directory -Force "$env:USERPROFILE\\.claude\\skills"
+   "$env:USERPROFILE\\.claude\\skills\\vps-caddy-proxy.md" に
+   Caddy + NginxのDocker Composeテンプレートを書いてください。
+
+6. GitHub CLI認証:
+   gh auth login --hostname github.com --git-protocol ssh
+   ※ブラウザが開きます。コードを入力して認証を完了してください。
+
+7. 全ツールの動作確認（バージョンをすべて出力）:
+   git --version; gh --version; docker --version; mise --version; node --version
+   gh auth status
+   mise list python
+   dir "$env:USERPROFILE\\.claude\\skills"`,
         },
         {
           type: 'alert',
           variant: 'warn',
-          html: '⏸ <strong>gh auth login</strong> will pause and open a browser. Copy the code shown in the terminal → paste it at github.com/login/device → approve. Claude Code resumes automatically.',
+          html: '⏸ <strong>gh auth login</strong> はブラウザを開いて一時停止します。ターミナルに表示されたコードをコピー → github.com/login/device に貼り付け → 承認。Claude Codeは自動的に再開します。',
         },
         {
           type: 'mermaid',
           diagram: `sequenceDiagram
-    actor You
+    actor You as あなた
     participant CC as Claude Code
-    participant Shell as Shell
+    participant Shell as シェル
     participant gh as gh CLI
     participant GitHub
 
-    You->>CC: Paste master prompt
-    CC->>Shell: Detect OS (macOS / Linux / WSL2)
-    CC-->>You: 📋 Show command plan — confirm?
-    You->>CC: ✅ Proceed
+    You->>CC: マスタープロンプトを貼り付け
+    CC->>Shell: OS検出（macOS / Windows）
+    CC-->>You: 📋 コマンド一覧を表示 — 確認を求める
+    You->>CC: ✅ 実行承認
 
-    Note over CC,Shell: 🤖 Claude Code executes autonomously
-    CC->>Shell: Install Homebrew / apt packages
-    CC->>Shell: brew/apt install git gh docker mise
+    Note over CC,Shell: 🤖 Claude Code が自律実行
+    CC->>Shell: Homebrew / wingetパッケージをインストール
+    CC->>Shell: brew/winget install git gh docker mise
     CC->>Shell: mise use --global python@3.9..3.13
-    CC->>Shell: Add alias to ~/.zshrc · source it
-    CC->>Shell: mkdir ~/.claude/skills/ + write vps-caddy-proxy.md
+    CC->>Shell: エイリアスをシェル設定に追加・反映
+    CC->>Shell: ~/.claude/skills/ 作成・vps-caddy-proxy.md 書き込み
 
     CC->>gh: gh auth login --git-protocol ssh
-    gh-->>You: 🔑 Open github.com/login/device · enter: XXXX-YYYY
-    You->>GitHub: Enter code + approve OAuth
-    GitHub-->>gh: SSH key registered · token saved
-    gh-->>CC: ✅ Authenticated
+    gh-->>You: 🔑 github.com/login/device を開く · コード: XXXX-YYYY
+    You->>GitHub: コードを入力・OAuthを承認
+    GitHub-->>gh: SSHキー登録・トークン保存
+    gh-->>CC: ✅ 認証完了
 
-    CC->>Shell: Verify: git/gh/docker/mise/node versions
+    CC->>Shell: git/gh/docker/mise/node のバージョン確認
     CC->>Shell: gh auth status · mise list python
-    Shell-->>CC: All checks pass ✅
-    CC-->>You: Phase 1 complete · proceed to Phase 3`,
+    Shell-->>CC: 全チェック完了 ✅
+    CC-->>You: Phase 1 完了 · Phase 3へ進む`,
         },
         {
           type: 'checks',
           items: [
-            { id: 'p1-2-a', label: 'Homebrew installed (mac-only) / apt updated (WSL2)' },
-            { id: 'p1-2-b', label: 'git, gh, docker, mise installed' },
-            { id: 'p1-2-c', label: 'Python 3.9–3.13 available (<code>mise list python</code>)' },
-            { id: 'p1-2-d', label: 'Claude alias active in shell (<code>type claude</code> shows alias)' },
-            { id: 'p1-2-e', label: '<code>~/.claude/skills/vps-caddy-proxy.md</code> created' },
-            { id: 'p1-2-f', label: '<code>gh auth status</code> shows Authenticated' },
-            { id: 'p1-2-g', label: '<code>~/.ssh/id_ed25519.pub</code> visible on GitHub → Settings → SSH Keys' },
+            { id: 'p1-2-a', label: 'Homebrewインストール済み（<code>brew --version</code>）', os: 'mac' },
+            { id: 'p1-2-a2', label: 'wingetでgit・gh・Docker Desktop・miseインストール済み', os: 'win' },
+            { id: 'p1-2-b', label: 'git、gh、docker、miseインストール済み', os: 'mac' },
+            { id: 'p1-2-c', label: 'Python 3.9〜3.13が利用可能（<code>mise list python</code>）' },
+            { id: 'p1-2-d', label: 'Claudeエイリアスがシェルで有効（<code>type claude</code> でエイリアス表示）' },
+            { id: 'p1-2-e', label: '<code>~/.claude/skills/vps-caddy-proxy.md</code> 作成済み' },
+            { id: 'p1-2-f', label: '<code>gh auth status</code> が認証済みを表示' },
+            { id: 'p1-2-g', label: '<code>~/.ssh/id_ed25519.pub</code> がGitHub → Settings → SSH Keysに表示' },
           ],
         },
       ],
@@ -377,62 +405,62 @@ npm install -g @anthropic-ai/claude-code`,
 const phase2: Section = {
   id: 'phase2',
   navLabel: '[ PHASE 2 · CLAUDE ]',
-  title: 'Phase 2 · Claude Code Configuration Reference',
+  title: 'Phase 2 · Claude Code 設定リファレンス',
   headerAlert: {
     variant: 'info',
-    html: '✅ <strong>If you completed Phase 1 Step 2</strong>, Claude Code already set up the alias, skills directory, and GitHub auth automatically. This section documents what was configured and why.',
+    html: '✅ <strong>Phase 1 Step 2を完了した場合</strong>、Claude Codeがエイリアス・スキルディレクトリ・GitHub認証を自動設定済みです。このセクションは設定内容と理由を参照情報として記録しています。',
   },
   steps: [
     {
       id: 'card-p2-1',
-      titleHtml: 'Why <code>--dangerously-skip-permissions</code>',
+      titleHtml: 'なぜ <code>--dangerously-skip-permissions</code> を使うのか',
       badgeLabel: 'REFERENCE',
       blocks: [
         {
           type: 'alert',
           variant: 'danger',
-          html: '⚡ <strong>--dangerously-skip-permissions</strong>: This alias lets Claude Code execute <em>any</em> shell command without per-command prompts. Always include "list commands before executing" in your prompts as a safeguard.',
+          html: '⚡ <strong>--dangerously-skip-permissions</strong>: このエイリアスにより、Claude Codeは確認プロンプトなしにあらゆるシェルコマンドを実行できます。プロンプトには必ず「実行前にコマンド一覧を出力」を含めてください。',
         },
         {
           type: 'ascii',
-          text: `WITHOUT alias                          WITH alias
+          text: `エイリアスなし                         エイリアスあり
 ─────────────────────────────          ─────────────────────────────
-$ claude                               $ claude (alias active)
+$ claude                               $ claude （エイリアス有効）
 > run: brew install git                > run: brew install git
-⚠ Allow this command? [y/N]           ✓ Executing... (no prompt)
+⚠ このコマンドを許可しますか? [y/N]   ✓ 実行中... （確認なし）
 > run: mise use --global ...          > run: mise use --global ...
-⚠ Allow this command? [y/N]           ✓ Executing...
-> ...40 more prompts for VPS setup    ✓ All done in one shot
+⚠ このコマンドを許可しますか? [y/N]   ✓ 実行中...
+> ...VPS設定で40回以上の確認          ✓ 一括完了
 
-Use with: "list all commands first, then ask for confirmation"`,
+プロンプトに必ず含める: "実行前にコマンド一覧を出力し確認を求めてください"`,
         },
         {
           type: 'checks',
           items: [
-            { id: 'p2-1-a', label: 'Alias active: <code>type claude</code> shows <code>claude --dangerously-skip-permissions</code>' },
-            { id: 'p2-1-b', label: 'Pre-commit habit: <code>git commit</code> before every <code>claude</code> session' },
+            { id: 'p2-1-a', label: 'エイリアス有効: <code>type claude</code> が <code>claude --dangerously-skip-permissions</code> を表示' },
+            { id: 'p2-1-b', label: 'プリコミット習慣: 毎回の <code>claude</code> セッション前に <code>git commit</code>' },
           ],
         },
       ],
     },
     {
       id: 'card-p2-2',
-      titleHtml: 'Skills Directory Structure',
+      titleHtml: 'スキルディレクトリの構成',
       badgeLabel: 'REFERENCE',
       blocks: [
         {
           type: 'alert',
           variant: 'info',
-          html: '💡 Skills are reusable knowledge files Claude Code reads automatically. The Phase 1 master prompt wrote <code>vps-caddy-proxy.md</code> — edit it any time to update your templates.',
+          html: '💡 スキルはClaude Codeが自動的に読み込む再利用可能な知識ファイルです。Phase 1のマスタープロンプトが <code>vps-caddy-proxy.md</code> を作成しました — いつでも編集してテンプレートを更新できます。',
         },
         {
           type: 'ascii',
           text: `~/.claude/
-├── CLAUDE.md               ← global system instructions for all projects
+├── CLAUDE.md               ← 全プロジェクト共通のシステム指示
 └── skills/
-    └── vps-caddy-proxy.md  ← Caddy + Docker Compose definition
+    └── vps-caddy-proxy.md  ← Caddy + Docker Compose テンプレート
 
-vps-caddy-proxy.md should contain:
+vps-caddy-proxy.md の内容例:
 ┌────────────────────────────────────────────────────┐
 │  # Caddy Reverse Proxy — Docker Compose Template   │
 │                                                    │
@@ -455,8 +483,8 @@ vps-caddy-proxy.md should contain:
         {
           type: 'checks',
           items: [
-            { id: 'p2-2-a', label: '<code>~/.claude/skills/vps-caddy-proxy.md</code> exists and has Caddy + Nginx template' },
-            { id: 'p2-2-b', label: '<code>~/.claude/CLAUDE.md</code> created (optional — global instructions for Claude)' },
+            { id: 'p2-2-a', label: '<code>~/.claude/skills/vps-caddy-proxy.md</code> が存在し、Caddy + Nginxテンプレートが含まれている' },
+            { id: 'p2-2-b', label: '<code>~/.claude/CLAUDE.md</code> 作成済み（任意 — Claudeへのグローバル指示）' },
           ],
         },
       ],
@@ -469,130 +497,133 @@ vps-caddy-proxy.md should contain:
 const phase3: Section = {
   id: 'phase3',
   navLabel: '[ PHASE 3 · INFRA ]',
-  title: 'Phase 3 · Infrastructure Procurement',
+  title: 'Phase 3 · インフラの調達',
   steps: [
     {
       id: 'card-p3-1',
-      titleHtml: 'Contract XServer VPS',
+      titleHtml: 'XServer VPSの契約',
       badgeLabel: 'STEP 1',
       badgeVariant: 'human',
       blocks: [
         {
           type: 'checks',
           items: [
-            { id: 'p3-1-a', label: 'Plan selected — Ubuntu 24.04 LTS chosen as OS' },
-            { id: 'p3-1-b', label: 'SSH key option: "新しく生成する" → downloaded <code>xvps.pem</code>' },
-            { id: 'p3-1-c', label: 'VPS IP address noted' },
+            { id: 'p3-1-a', label: 'プラン選択済み — OSにUbuntu 24.04 LTSを選択' },
+            { id: 'p3-1-b', label: 'SSH鍵オプション: "新しく生成する" → <code>xvps.pem</code> をダウンロード' },
+            { id: 'p3-1-c', label: 'VPSのIPアドレスを控えた' },
           ],
         },
       ],
     },
     {
       id: 'card-p3-2',
-      titleHtml: 'Configure Local SSH Access',
+      titleHtml: 'ローカルSSHアクセスの設定',
       badgeLabel: 'STEP 2',
       badgeVariant: 'human',
       blocks: [
         {
           type: 'checks',
           items: [
-            { id: 'p3-2-a', label: '<code>xvps.pem</code> moved to <code>~/.ssh/xvps.pem</code>' },
-            { id: 'p3-2-b', label: 'Permissions set: <code>chmod 600 ~/.ssh/xvps.pem</code>' },
-            { id: 'p3-2-c', label: 'Test connection successful: <code>ssh -i ~/.ssh/xvps.pem root@&lt;VPS_IP&gt;</code>' },
+            { id: 'p3-2-a', label: '<code>xvps.pem</code> を <code>~/.ssh/xvps.pem</code> に移動済み' },
+            { id: 'p3-2-b', label: 'パーミッション設定済み: <code>chmod 600 ~/.ssh/xvps.pem</code>' },
+            { id: 'p3-2-c', label: '接続テスト成功: <code>ssh -i ~/.ssh/xvps.pem root@&lt;VPS_IP&gt;</code>（初回・root接続）' },
           ],
         },
         {
           type: 'code',
-          mac: 'mv ~/Downloads/xvps.pem ~/.ssh/\nchmod 600 ~/.ssh/xvps.pem\nssh -i ~/.ssh/xvps.pem root@<YOUR_VPS_IP>',
-          win: `# PowerShell — move key and fix permissions
+          mac: `# SSHキーを移動してパーミッションを設定
+mv ~/Downloads/xvps.pem ~/.ssh/
+chmod 600 ~/.ssh/xvps.pem
+
+# 接続テスト（root として初回接続）
+ssh -i ~/.ssh/xvps.pem root@<VPSのIPアドレス>`,
+          win: `# Windows Terminal（PowerShell）で実行
+# SSHキーを移動してパーミッションを設定
 Move-Item "$env:USERPROFILE\\Downloads\\xvps.pem" "$env:USERPROFILE\\.ssh\\xvps.pem"
 icacls "$env:USERPROFILE\\.ssh\\xvps.pem" /inheritance:r /grant:r "\${env:USERNAME}:(R)"
-ssh -i "$env:USERPROFILE\\.ssh\\xvps.pem" root@<YOUR_VPS_IP>
 
-# --- OR inside WSL2 (recommended — avoids Windows permission quirks) ---
-cp /mnt/c/Users/$USER/Downloads/xvps.pem ~/.ssh/
-chmod 600 ~/.ssh/xvps.pem
-ssh -i ~/.ssh/xvps.pem root@<YOUR_VPS_IP>`,
+# 接続テスト（root として初回接続）
+ssh -i "$env:USERPROFILE\\.ssh\\xvps.pem" root@<VPSのIPアドレス>`,
         },
       ],
     },
     {
       id: 'card-p3-3',
-      titleHtml: 'Create <code>server.md</code> — Declarative Config File',
+      titleHtml: '<code>server.md</code> — 宣言的設定ファイルの作成',
       badgeLabel: 'STEP 3',
       badgeVariant: 'human',
       blocks: [
         {
           type: 'alert',
           variant: 'info',
-          html: '📋 This file is the <strong>Single Source of Truth</strong> for your VPS. Claude Code reads it to know where and how to connect.',
+          html: '📋 このファイルがVPSの <strong>Single Source of Truth</strong> です。Claude Codeはこのファイルを読み込み、接続先と設定方法を把握します。',
         },
         {
           type: 'ascii',
-          text: `server.md (example)
+          text: `server.md（設定例）
 ═══════════════════════════════════════════
-# Server Configuration
+# サーバー設定
 
-## Connection
+## 接続情報
 - IP:       203.0.113.42
-- User:     root
+- User:     root           ← Phase 4完了後は deploy に変更
 - SSH Key:  ~/.ssh/xvps.pem
 - Port:     22
 
-## Domain
-- Subdomain: my-project.xvps.jp
-- DNS:       A record → 203.0.113.42
+## ドメイン
+- サブドメイン: my-project.xvps.jp
+- DNS:         Aレコード → 203.0.113.42
 
-## Target Stack
+## 使用スタック
 - OS:       Ubuntu 24.04 LTS
-- Runtime:  Docker + Docker Compose
-- Proxy:    Caddy (auto TLS)
-- App:      Nginx (sample page)
+- ランタイム: Docker + Docker Compose
+- プロキシ:  Caddy（TLS自動取得）
+- アプリ:    Nginx（サンプルページ）
 ═══════════════════════════════════════════`,
         },
         {
           type: 'checks',
           items: [
-            { id: 'p3-3-a', label: '<code>server.md</code> created in project root with real IP and domain' },
-            { id: 'p3-3-b', label: 'DNS A record pointing to VPS IP (check with <code>dig domain.xvps.jp A</code>)' },
+            { id: 'p3-3-a', label: '実際のIPとドメインを記入した <code>server.md</code> をプロジェクトルートに作成済み' },
+            { id: 'p3-3-b', label: 'DNS AレコードがVPS IPを指している（<code>dig domain.xvps.jp A</code> で確認）' },
           ],
         },
       ],
     },
     {
       id: 'card-p3-dns',
-      titleHtml: 'DNS Propagation — Critical Timing Issue',
+      titleHtml: 'DNS伝播 — 重要なタイミング',
       badgeLabel: '⚠ WAIT',
       badgeVariant: 'warn',
       blocks: [
         {
           type: 'mermaid',
           diagram: `sequenceDiagram
-    participant You
-    participant DNS as DNS Registrar
-    participant Resolvers as Global DNS Resolvers
+    participant You as あなた
+    participant DNS as DNSレジストラ
+    participant Resolvers as グローバルDNS
     participant Caddy
     participant LE as Let's Encrypt
 
-    You->>DNS: Set A record → VPS IP
-    Note over DNS,Resolvers: TTL propagation: 5min–48h
+    You->>DNS: Aレコードを設定 → VPS IP
+    Note over DNS,Resolvers: TTL伝播: 5分〜48時間
     You->>Caddy: docker compose up
-    Caddy->>LE: Request TLS certificate for domain
-    LE->>Resolvers: DNS lookup to verify ownership
-    alt DNS NOT propagated yet
-        Resolvers-->>LE: NXDOMAIN / wrong IP
-        LE-->>Caddy: ❌ Certificate issuance FAILED
-        Caddy-->>You: Process crashes
-    else DNS propagated ✅
-        Resolvers-->>LE: Correct VPS IP
-        LE-->>Caddy: ✅ Certificate issued
-        Caddy-->>You: HTTPS serving on 443
+    Caddy->>LE: ドメインのTLS証明書を要求
+    LE->>Resolvers: 所有権確認のためDNS検索
+    alt DNS未伝播
+        Resolvers-->>LE: NXDOMAIN / 誤ったIP
+        LE-->>Caddy: ❌ 証明書取得 失敗
+        Caddy-->>You: プロセスクラッシュ
+    else DNS伝播済み ✅
+        Resolvers-->>LE: 正しいVPS IP
+        LE-->>Caddy: ✅ 証明書発行
+        Caddy-->>You: HTTPSで443番ポート待受
     end`,
         },
         {
           type: 'alert',
           variant: 'warn',
-          html: '⏳ <strong>Before starting Caddy</strong>, verify DNS with: <code>dig +short domain.xvps.jp A</code> — must return your VPS IP.',
+          html: '⏳ <strong>Caddyを起動する前に</strong>、DNSを確認してください: <code>dig +short domain.xvps.jp A</code> — VPSのIPが返される必要があります。',
         },
       ],
     },
@@ -604,39 +635,42 @@ ssh -i ~/.ssh/xvps.pem root@<YOUR_VPS_IP>`,
 const phase4: Section = {
   id: 'phase4',
   navLabel: '[ PHASE 4 · DEPLOY ]',
-  title: 'Phase 4 · AI-Driven Remote Provisioning',
+  title: 'Phase 4 · AIによるリモートプロビジョニング',
   headerAlert: {
     variant: 'info',
-    html: '🤖 This phase is <strong>delegated to Claude Code</strong>. You launch it once; Claude handles all remote commands including security hardening.',
+    html: '🤖 このフェーズは <strong>Claude Codeに委任</strong> されます。プロンプトを提供するだけで、Claudeがセキュリティ強化を含むすべてのリモートコマンドを実行します。',
   },
   steps: [
     {
       id: 'card-p4-1',
-      titleHtml: 'Launch Claude Code',
+      titleHtml: 'Claude Codeを起動',
       badgeLabel: 'HUMAN',
       badgeVariant: 'human',
       blocks: [
         {
           type: 'alert',
           variant: 'info',
-          html: '👤 <strong>Your only action in this phase:</strong> navigate to your project directory (where <code>server.md</code> lives) and run <code>claude</code>. Then paste the master prompt in Step 2.',
+          html: '👤 <strong>このフェーズでの唯一の操作:</strong> プロジェクトディレクトリ（<code>server.md</code> があるフォルダ）に移動して <code>claude</code> を実行し、Step 2のマスタープロンプトを貼り付けてください。',
         },
         {
           type: 'code',
-          common: 'cd /path/to/your/project  # where server.md lives\nclaude',
+          common: `# server.mdのあるプロジェクトディレクトリに移動
+cd /path/to/your/project
+
+claude`,
         },
       ],
     },
     {
       id: 'card-p4-2',
-      titleHtml: 'The Master Prompt',
+      titleHtml: 'マスタープロンプト',
       badgeLabel: 'CLAUDE CODE',
       badgeVariant: 'claude',
       blocks: [
         {
           type: 'alert',
           variant: 'warn',
-          html: '🔐 <strong>Security-first approach:</strong> Claude connects as <code>root</code> <em>once</em> to bootstrap the <code>deploy</code> user, then immediately disables root SSH. All Docker work runs as <code>deploy</code>.',
+          html: '🔐 <strong>セキュリティファーストのアプローチ:</strong> Claudeは <code>root</code> として<em>一度だけ</em>接続してdeployユーザーを作成し、直後にroot SSHを無効化します。Docker作業はすべて <code>deploy</code> ユーザーで実行されます。',
         },
         {
           type: 'code',
@@ -668,40 +702,40 @@ const phase4: Section = {
         {
           type: 'mermaid',
           diagram: `sequenceDiagram
-    actor You
+    actor You as あなた
     participant CC as Claude Code
     participant VPS as XServer VPS
 
-    You->>CC: Paste master prompt
-    CC->>CC: Read server.md + ~/.ssh/xvps.pem
-    CC->>VPS: SSH connect as root (first & last time)
+    You->>CC: マスタープロンプトを貼り付け
+    CC->>CC: server.md を読み込み
+    CC->>VPS: rootとしてSSH接続（初回・最後）
 
-    Note over CC,VPS: 🔐 Security bootstrap
-    CC->>VPS: useradd deploy + sudo group
-    CC->>VPS: mkdir /home/deploy/.ssh
-    CC->>VPS: Append ~/.ssh/id_ed25519.pub → authorized_keys
-    CC->>VPS: Verify: ssh as deploy ✅
-    CC->>VPS: Set PermitRootLogin no
+    Note over CC,VPS: 🔐 セキュリティ設定
+    CC->>VPS: useradd deploy + sudoグループ追加
+    CC->>VPS: /home/deploy/.ssh/ を作成
+    CC->>VPS: id_ed25519.pub → authorized_keys に追加
+    CC->>VPS: deployユーザーでSSH確認 ✅
+    CC->>VPS: PermitRootLogin no に設定
     CC->>VPS: systemctl restart sshd
-    Note over VPS: Root SSH disabled 🔒
+    Note over VPS: rootログイン無効化 🔒
 
-    CC->>VPS: SSH reconnect as deploy
+    CC->>VPS: deployとしてSSH再接続
     CC->>VPS: apt install docker.io docker-compose
-    CC->>CC: Read ~/.claude/skills/vps-caddy-proxy.md
-    CC->>VPS: Write docker-compose.yml + Caddyfile
+    CC->>CC: ~/.claude/skills/vps-caddy-proxy.md を読み込み
+    CC->>VPS: docker-compose.yml + Caddyfile を配置
     CC->>VPS: docker compose up -d
-    VPS-->>CC: Containers healthy ✅
-    CC-->>You: 🌐 https://domain.xvps.jp is live`,
+    VPS-->>CC: コンテナ正常起動 ✅
+    CC-->>You: 🌐 https://domain.xvps.jp が公開されました`,
         },
         {
           type: 'checks',
           items: [
-            { id: 'p4-2-a', label: '<code>deploy</code> user created with sudo rights' },
-            { id: 'p4-2-b', label: 'SSH login works as <code>deploy</code> (no password)' },
-            { id: 'p4-2-c', label: 'Root SSH disabled — <code>ssh root@VPS_IP</code> rejected' },
-            { id: 'p4-2-d', label: '<code>docker ps</code> shows caddy + nginx containers running' },
-            { id: 'p4-2-e', label: '<code>https://domain.xvps.jp</code> loads with valid TLS cert' },
-            { id: 'p4-2-f', label: '<code>server.md</code> updated: <code>User: deploy</code>' },
+            { id: 'p4-2-a', label: 'sudo権限付きの <code>deploy</code> ユーザー作成済み' },
+            { id: 'p4-2-b', label: '<code>deploy</code> ユーザーでSSHログイン可能（パスワード不要）' },
+            { id: 'p4-2-c', label: 'root SSHが無効 — <code>ssh root@VPS_IP</code> が拒否される' },
+            { id: 'p4-2-d', label: '<code>docker ps</code> でcaddy + nginxコンテナが稼働中' },
+            { id: 'p4-2-e', label: '<code>https://domain.xvps.jp</code> が有効なTLS証明書で表示' },
+            { id: 'p4-2-f', label: '<code>server.md</code> 更新済み: <code>User: deploy</code>' },
           ],
         },
       ],
@@ -714,121 +748,121 @@ const phase4: Section = {
 const risks: Section = {
   id: 'risks',
   navLabel: '[ RISK MATRIX ]',
-  title: 'Risk Matrix &amp; Opportunity Cost Analysis',
+  title: 'リスクマトリクスと機会費用の分析',
   blocks: [
-    { type: 'sectionTitle', text: '◆ Risk Quadrant' },
+    { type: 'sectionTitle', text: '◆ リスク象限' },
     {
       type: 'mermaid',
       diagram: `quadrantChart
-    title Risk Assessment Matrix
-    x-axis Low Probability --> High Probability
-    y-axis Low Impact --> High Impact
-    quadrant-1 Monitor Closely
-    quadrant-2 Critical Risks
-    quadrant-3 Low Priority
-    quadrant-4 Likely But Manageable
-    DNS propagation delay: [0.75, 0.6]
-    rm -rf from bad prompt: [0.2, 0.95]
-    Python dependency hell: [0.85, 0.5]
-    SSH key exposure: [0.1, 0.9]
-    Caddy cert failure: [0.6, 0.55]
-    OS package conflicts: [0.7, 0.45]`,
+    title リスク評価マトリクス
+    x-axis 低確率 --> 高確率
+    y-axis 低影響 --> 高影響
+    quadrant-1 要監視
+    quadrant-2 重大リスク
+    quadrant-3 低優先
+    quadrant-4 高確率だが対処可能
+    DNS伝播の遅延: [0.75, 0.6]
+    危険なプロンプト実行: [0.2, 0.95]
+    Python依存関係の競合: [0.85, 0.5]
+    SSHキー漏洩: [0.1, 0.9]
+    Caddy証明書エラー: [0.6, 0.55]
+    OSパッケージ競合: [0.7, 0.45]`,
     },
-    { type: 'sectionTitle', text: '◆ Detailed Risk Register' },
+    { type: 'sectionTitle', text: '◆ リスク詳細一覧' },
     {
       type: 'html',
       content: `<table class="risk-table">
   <thead>
     <tr>
-      <th>Risk</th>
-      <th>Category</th>
-      <th>Probability</th>
-      <th>Impact</th>
-      <th>Mitigation</th>
+      <th>リスク</th>
+      <th>カテゴリ</th>
+      <th>確率</th>
+      <th>影響</th>
+      <th>対策</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>Python OS-level install conflicts</td>
-      <td><span class="risk-high">[FACT]</span></td>
-      <td><span class="risk-high">HIGH</span></td>
-      <td><span class="risk-med">MEDIUM</span></td>
-      <td>Use <code>mise</code> or <code>pyenv</code> exclusively</td>
+      <td>PythonのOSレベルインストール競合</td>
+      <td><span class="risk-high">[既知の事実]</span></td>
+      <td><span class="risk-high">高</span></td>
+      <td><span class="risk-med">中</span></td>
+      <td><code>mise</code> または <code>pyenv</code> のみ使用</td>
     </tr>
     <tr>
-      <td>DNS not propagated → Caddy cert failure</td>
-      <td><span class="risk-unk">[UNCERTAIN]</span></td>
-      <td><span class="risk-med">MEDIUM</span></td>
-      <td><span class="risk-med">MEDIUM</span></td>
-      <td>Verify with <code>dig</code> before starting Caddy</td>
+      <td>DNS未伝播 → Caddy証明書取得失敗</td>
+      <td><span class="risk-unk">[不確定]</span></td>
+      <td><span class="risk-med">中</span></td>
+      <td><span class="risk-med">中</span></td>
+      <td>Caddy起動前に <code>dig</code> で確認</td>
     </tr>
     <tr>
-      <td><code>--dangerously-skip-permissions</code> catastrophic command</td>
-      <td><span class="risk-high">[FACT]</span></td>
-      <td><span class="risk-low">LOW</span></td>
-      <td><span class="risk-high">CRITICAL</span></td>
-      <td>Git commit before running; require command preview in prompt</td>
+      <td><code>--dangerously-skip-permissions</code> による致命的コマンド</td>
+      <td><span class="risk-high">[既知の事実]</span></td>
+      <td><span class="risk-low">低</span></td>
+      <td><span class="risk-high">致命的</span></td>
+      <td>実行前にgit commit; プロンプトにコマンドプレビューを必須化</td>
     </tr>
     <tr>
-      <td>SSH private key leaked in repo</td>
-      <td><span class="risk-high">[FACT]</span></td>
-      <td><span class="risk-low">LOW</span></td>
-      <td><span class="risk-high">CRITICAL</span></td>
-      <td>Add <code>*.pem</code> to <code>.gitignore</code>; never commit keys</td>
+      <td>SSH秘密鍵のリポジトリへの誤コミット</td>
+      <td><span class="risk-high">[既知の事実]</span></td>
+      <td><span class="risk-low">低</span></td>
+      <td><span class="risk-high">致命的</span></td>
+      <td><code>*.pem</code> を <code>.gitignore</code> に追加; 鍵は絶対コミットしない</td>
     </tr>
     <tr>
-      <td>gh SSH key not matching VPS authorized_keys</td>
-      <td><span class="risk-med">[HIGH PROB]</span></td>
-      <td><span class="risk-low">LOW</span></td>
-      <td><span class="risk-low">LOW</span></td>
-      <td>Verify with <code>gh ssh-key list</code> after setup</td>
+      <td>gh SSHキーとVPS authorized_keysの不一致</td>
+      <td><span class="risk-med">[高確率]</span></td>
+      <td><span class="risk-low">低</span></td>
+      <td><span class="risk-low">低</span></td>
+      <td>セットアップ後に <code>gh ssh-key list</code> で確認</td>
     </tr>
   </tbody>
 </table>`,
     },
-    { type: 'sectionTitle', text: '◆ Opportunity Cost — Manual vs AI-Delegated' },
+    { type: 'sectionTitle', text: '◆ 機会費用 — 手動 vs AI委任' },
     {
       type: 'mermaid',
       diagram: `gantt
-    title Manual vs AI-Delegated Setup Time
+    title 手動 vs AI委任 — セットアップ所要時間
     dateFormat HH:mm
     axisFormat %H:%M
 
-    section Manual Approach
-    Research + documentation     :manual1, 00:00, 60m
-    Install tools one by one     :manual2, after manual1, 45m
-    SSH key setup (trial/error)  :manual3, after manual2, 30m
-    VPS contract + configure     :manual4, after manual3, 30m
-    Docker install + debug       :manual5, after manual4, 60m
-    Caddy config + TLS debug     :manual6, after manual5, 90m
+    section 手動アプローチ（約315分）
+    リサーチと資料確認      :t1, 00:00, 60m
+    ツールの個別インストール :t2, after t1, 45m
+    SSHキー設定             :t3, after t2, 30m
+    VPS契約と設定           :t4, after t3, 30m
+    Dockerインストール       :t5, after t4, 60m
+    Caddy設定とTLS確認      :t6, after t5, 90m
 
-    section AI-Delegated (This Guide)
-    Phase 1-2 setup (local)      :ai1, 00:00, 20m
-    Phase 3 VPS contract         :ai2, after ai1, 15m
-    Phase 4 Claude executes all  :ai3, after ai2, 15m`,
+    section AIガイドの場合（約50分）
+    Phase 1-2 ローカル設定  :a1, 00:00, 20m
+    Phase 3 VPS契約         :a2, after a1, 15m
+    Phase 4 Claude実行      :a3, after a2, 15m`,
     },
     {
       type: 'ascii',
-      text: `PRINCIPLE SUMMARY
+      text: `原則まとめ
 ════════════════════════════════════════════════════════════════════
 
 [思考1] 宣言的インフラ管理 (Declarative Infrastructure)
          ┌─────────────────────────────────────────────────────┐
          │  server.md + skills/ = Single Source of Truth      │
-         │  Human remembers NOTHING → Files remember EVERYTHING│
+         │  人間は何も覚えない → ファイルがすべてを記憶する  │
          └─────────────────────────────────────────────────────┘
 
 [思考2] パッケージ隔離 (Dependency Isolation)
-         OS Python  ──────────────── NEVER TOUCH
-         mise envs  ──────────────── ALWAYS USE
-         Docker     ──────────────── FOR SERVICES
+         OS Python  ──────────────── 絶対に触らない
+         mise envs  ──────────────── 常にこちらを使う
+         Docker     ──────────────── サービス用
 
 [思考3] リスクと速度のバランス (Risk vs Speed Tradeoff)
-         Autonomy ────────────────────────────────────▶ Speed
-         ◀──────────────────────────────── Control/Safety
+         自律性 ────────────────────────────────────▶ スピード
+         ◀──────────────────────────────── 管理・安全性
                        ▲
-                  You are HERE
-                  (with proper safeguards)
+                  あなたは今ここ
+                  （適切な安全策を持って）
 
 ════════════════════════════════════════════════════════════════════`,
     },
