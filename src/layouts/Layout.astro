@@ -11,6 +11,10 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title}</title>
   <link rel="icon" type="image/svg+xml" href="/vps-setup/favicon.svg" />
+  <!-- M PLUS 1 Code: CJK-capable monospace for ASCII art alignment -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code&display=swap" rel="stylesheet" />
   <script is:inline src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style is:global>
     /* ─── CSS RESET & BASE ─────────────────────────────────────────── */
@@ -388,6 +392,9 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
       margin: 16px 0;
       overflow-x: auto;
       color: var(--green);
+      /* CJK-aware monospace: each CJK char = exactly 2× ASCII char width */
+      font-family: 'M PLUS 1 Code', 'BIZ UDGothic', 'MS Gothic',
+                   'Osaka-Mono', 'Courier New', monospace;
       font-size: 12px;
       line-height: 1.4;
       white-space: pre;

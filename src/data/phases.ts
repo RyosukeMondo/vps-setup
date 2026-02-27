@@ -46,6 +46,39 @@ export interface Section {
   steps?: Step[];
 }
 
+// ─── ASCII art helpers ────────────────────────────────────────────────────────
+/** Display width of a string: CJK/fullwidth/emoji chars count as 2 columns. */
+function cjkWidth(s: string): number {
+  let w = 0;
+  for (const ch of [...s]) {
+    const cp = ch.codePointAt(0) ?? 0;
+    if (
+      (cp >= 0x1100  && cp <= 0x115F)  || // Hangul Jamo
+      (cp >= 0x2E80  && cp <= 0x303E)  || // CJK Radicals + Symbols
+      (cp >= 0x3041  && cp <= 0xA4CF)  || // Hiragana … Yi Radicals
+      (cp >= 0xAC00  && cp <= 0xD7A3)  || // Hangul Syllables
+      (cp >= 0xF900  && cp <= 0xFAFF)  || // CJK Compat Ideographs
+      (cp >= 0xFE10  && cp <= 0xFE1F)  || // Vertical Forms
+      (cp >= 0xFE30  && cp <= 0xFE6F)  || // CJK Compat Forms
+      (cp >= 0xFF01  && cp <= 0xFF60)  || // Fullwidth (！…｀) incl. （）
+      (cp >= 0xFFE0  && cp <= 0xFFE6)  || // Fullwidth Signs
+      (cp >= 0x1F300 && cp <= 0x1FAFF) || // Emoji / Misc Symbols
+      (cp >= 0x20000 && cp <= 0x2FFFD) || // CJK Extension B-F
+      (cp >= 0x30000 && cp <= 0x3FFFD)    // CJK Extension G+
+    ) w += 2;
+    else w += 1;
+  }
+  return w;
+}
+
+/** Build a ┌─…─┐ box: each line is right-padded to `innerWidth` display cols. */
+function makeBox(lines: string[], innerWidth: number): string {
+  const rule = '─'.repeat(innerWidth);
+  const pad = (content: string) =>
+    '│' + content + ' '.repeat(Math.max(0, innerWidth - cjkWidth(content))) + '│';
+  return ['┌' + rule + '┐', ...lines.map(pad), '└' + rule + '┘'].join('\n');
+}
+
 // ─── OVERVIEW ─────────────────────────────────────────────────────────────────
 
 const overview: Section = {
@@ -229,6 +262,29 @@ const overview: Section = {
 
 // ─── PHASE 1 ──────────────────────────────────────────────────────────────────
 
+// Phase 1 Step 2 automation flow — box with CJK-aware padding (57-col inner width)
+const p1AutoBox = [
+  '👤 あなた — Step 1 完了',
+  ' │',
+  ' ▼                           🤖 Claude Code が自動実行',
+  makeBox([
+    '  brew または winget インストール',
+    '    ↓',
+    '  git · gh · docker · mise インストール',
+    '    ↓',
+    '  Python 3.9–3.13 を mise で設定',
+    '    ↓',
+    '  claude エイリアスをシェルに追加',
+    '    ↓',
+    '  skills/vps-caddy-proxy.md 作成',
+    '    ↓',
+    '  gh auth login  ← ブラウザで承認（一時停止）',
+  ], 57),
+  ' │',
+  ' ▼',
+  '✅ 全ツール確認完了',
+].join('\n');
+
 const phase1: Section = {
   id: 'phase1',
   navLabel: '[ PHASE 1 · LOCAL ]',
@@ -348,25 +404,7 @@ claude --version`,
         },
         {
           type: 'ascii',
-          text: `👤 あなた — Step 1 完了
- │
- ▼                           🤖 Claude Code が自動実行
-┌─────────────────────────────────────────────────────────┐
-│  brew または winget インストール                         │
-│    ↓                                                    │
-│  git · gh · docker · mise インストール                  │
-│    ↓                                                    │
-│  Python 3.9–3.13 を mise で設定                         │
-│    ↓                                                    │
-│  claude エイリアスをシェルに追加                         │
-│    ↓                                                    │
-│  skills/vps-caddy-proxy.md 作成                         │
-│    ↓                                                    │
-│  gh auth login  ← ブラウザで承認（一時停止）            │
-└─────────────────────────────────────────────────────────┘
- │
- ▼
-✅ 全ツール確認完了`,
+          text: p1AutoBox,
         },
         {
           type: 'alert',
