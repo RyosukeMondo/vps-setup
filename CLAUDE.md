@@ -32,6 +32,8 @@ Use `xychart-beta` bar charts instead for time/comparison data — no date forma
 
 - Cannot connect an external node to a **subgraph ID** as edge target (`H --> SUBGRAPH_ID` fails)
   → Connect to the **first node inside** the subgraph instead (`H --> firstInternalNode`)
+- `style SUBGRAPH_ID` on a subgraph cluster causes **silent blank render** — never style clusters
+  → Use `style nodeId` only on individual node IDs
 - `quadrantChart` and `gantt` parsers reject non-ASCII in structural positions
 - `flowchart` and `sequenceDiagram` support Japanese fine
 
