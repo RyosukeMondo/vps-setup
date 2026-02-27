@@ -10,6 +10,7 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title}</title>
+  <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
   <script is:inline src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style is:global>
     /* ─── CSS RESET & BASE ─────────────────────────────────────────── */
@@ -541,6 +542,12 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
       color: var(--green);
     }
 
+    .level-toggle { display: flex; align-items: center; gap: 3px; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 3px; }
+    .level-btn { padding: 5px 14px; background: transparent; border: 1px solid transparent; color: var(--muted); cursor: pointer; font-family: var(--font); font-size: 12px; border-radius: 4px; transition: all .2s; }
+    .level-btn:hover { color: var(--text); }
+    .level-btn.active { background: var(--bg2); border-color: var(--border); color: var(--green); }
+    .level-label { color: var(--muted); font-size: 11px; letter-spacing: 1px; }
+
     .os-label {
       color: var(--muted);
       font-size: 11px;
@@ -548,8 +555,22 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
     }
 
     /* visibility rules driven by body class */
-    body.os-win .mac-only { display: none !important; }
-    body.os-mac .win-only { display: none !important; }
+    body.os-win  .mac-only      { display: none !important; }
+    body.os-mac  .win-only      { display: none !important; }
+    body.mode-expert   .beginner-only { display: none !important; }
+    body.mode-beginner .expert-only   { display: none !important; }
+
+    /* ─── BEGINNER CALLOUT ──────────────────────────────────────────── */
+    .beginner-only .alert-info { border-color: var(--green); }
+    .beginner-box {
+      border: 1px solid var(--green2);
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin: 12px 0;
+      background: #0d1f0d;
+    }
+    .beginner-box .sub-title { color: var(--green); margin-bottom: 10px; }
+    .beginner-box .ascii-wrap { background: #0a1a0a; }
 
     /* ─── RESET BUTTON ──────────────────────────────────────────────── */
     .reset-btn {
@@ -612,6 +633,11 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
       <div class="os-toggle">
         <button class="os-btn active" id="btnMac" onclick="setOS('mac')">🍎 Mac</button>
         <button class="os-btn"        id="btnWin" onclick="setOS('win')">🪟 Windows</button>
+      </div>
+      <span class="level-label">対象:</span>
+      <div class="level-toggle">
+        <button class="level-btn"        id="btnBeginner" onclick="setLevel('beginner')">🌱 初心者</button>
+        <button class="level-btn active" id="btnExpert"   onclick="setLevel('expert')">⚡ 経験者</button>
       </div>
       <button class="reset-btn" id="resetBtn" onclick="resetAll()">[ RESET PROGRESS ]</button>
     </div>
@@ -884,6 +910,25 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
     setOS(saved);
   }
 
+  /* ── Level switcher (初心者 / 経験者) ──────────────────────── */
+  const LEVEL_KEY = 'vps-setup-level';
+  let currentLevel = 'expert';
+
+  function setLevel(level) {
+    currentLevel = level;
+    localStorage.setItem(LEVEL_KEY, level);
+    document.body.classList.toggle('mode-beginner', level === 'beginner');
+    document.body.classList.toggle('mode-expert',   level === 'expert');
+    document.getElementById('btnBeginner').classList.toggle('active', level === 'beginner');
+    document.getElementById('btnExpert').classList.toggle('active',   level === 'expert');
+    updateProgress();
+  }
+
+  function loadLevel() {
+    const saved = localStorage.getItem(LEVEL_KEY) || 'expert';
+    setLevel(saved);
+  }
+
   /* ── Checklist + progress ─────────────────────────────────── */
   const STATE_KEY = 'vps-setup-checklist';
   let state = {};
@@ -898,8 +943,10 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
   }
 
   function isVisibleItem(li) {
-    if (li.classList.contains('mac-only') && currentOS === 'win') return false;
-    if (li.classList.contains('win-only') && currentOS === 'mac') return false;
+    if (li.classList.contains('mac-only')      && currentOS    === 'win')     return false;
+    if (li.classList.contains('win-only')      && currentOS    === 'mac')     return false;
+    if (li.classList.contains('beginner-only') && currentLevel === 'expert')  return false;
+    if (li.classList.contains('expert-only')   && currentLevel === 'beginner') return false;
     return true;
   }
 
@@ -968,6 +1015,7 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
 
   /* ── Init ─────────────────────────────────────────────────── */
   loadOS();
+  loadLevel();
   loadState();
   restoreChecklist();
 </script>

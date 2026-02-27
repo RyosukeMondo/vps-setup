@@ -26,7 +26,8 @@ export type ContentBlock =
   | { type: 'terminal';     mac?: TerminalVariant; win?: TerminalVariant }
   | { type: 'code';         mac?: string; win?: string; common?: string }
   | { type: 'checks';       items: CheckItem[] }
-  | { type: 'html';         content: string };
+  | { type: 'html';         content: string }
+  | { type: 'audience';     for: 'beginner' | 'expert'; blocks: ContentBlock[] };
 
 export interface Step {
   id: string;
@@ -52,6 +53,50 @@ const overview: Section = {
   navLabel: '[ OVERVIEW ]',
   title: 'システムアーキテクチャ概要',
   blocks: [
+    {
+      type: 'audience',
+      for: 'beginner',
+      blocks: [
+        { type: 'sectionTitle', text: '🌱 はじめに — このガイドで必要なもの' },
+        {
+          type: 'ascii',
+          text: `必要なもの チェックリスト
+════════════════════════════════════════════════════════════
+
+① AIツール
+  ┌────────────────────────────────────────────────────┐
+  │  Claude Pro 以上を推奨（月額$20 / 約3,000円）      │
+  │  https://claude.ai → 右上「Upgrade」               │
+  │                                                    │
+  │  なぜProが必要？                                   │
+  │  → Claude Code（ターミナルで使うAI）は             │
+  │     無料プランでは動きません                       │
+  │  → 長い作業でも制限にかかりにくい                  │
+  └────────────────────────────────────────────────────┘
+
+② PC推奨スペック
+  Mac: MacBook Air / Pro（M1チップ以降）
+       メモリ 16GB以上 / ストレージ 256GB以上
+
+  Windows: CPU Core i7 / Ryzen 7 以上
+           メモリ 16GB以上 / SSD 512GB以上
+
+  ※ メモリが少ないとDockerが重くなります
+
+③ サーバー（任意 — Phase 3/4 で必要）
+  XServer VPS: https://vps.xserver.ne.jp/
+  → 月額約1,000円〜 / 2GBプラン推奨
+  → ドメイン不要ならxvps.jpサブドメインが無料
+
+════════════════════════════════════════════════════════════`,
+        },
+        {
+          type: 'alert',
+          variant: 'info',
+          html: '💡 <strong>サーバーとドメインは任意です。</strong> Phase 1・2はサーバーなしでローカル環境のみ完結します。Phase 3・4でXServer VPSを使います。',
+        },
+      ],
+    },
     {
       type: 'mermaid',
       diagram: `flowchart LR
@@ -201,6 +246,55 @@ const phase1: Section = {
       badgeVariant: 'human',
       blocks: [
         {
+          type: 'audience',
+          for: 'beginner',
+          blocks: [
+            { type: 'sectionTitle', text: '🌱 Claude Code とは？（初心者向け）' },
+            {
+              type: 'ascii',
+              text: `Claude Code = ターミナルで動くAIアシスタント
+════════════════════════════════════════════════════════════
+
+  あなた（日本語で指示）
+  │
+  │  「Node.jsをインストールして」
+  │  「GitHubに接続して認証して」
+  │  「VPSにDockerをインストールして」
+  ↓
+  ┌─────────────────────────────────────────────┐
+  │  Claude Code（AI）                          │
+  │  → コマンドを考えて実行                     │
+  │  → 設定ファイルを書き換え                   │
+  │  → エラーが出たら自分で修正                 │
+  │  → 完了したら結果を報告                     │
+  └─────────────────────────────────────────────┘
+
+Node.js = Claude Code を動かすエンジン
+  └→ 車のエンジンのようなもの。普段は意識しない。まず入れるだけ。
+
+════════════════════════════════════════════════════════════`,
+            },
+            { type: 'sectionTitle', text: 'ターミナルの開き方' },
+            {
+              type: 'code',
+              mac: `# ① Command (⌘) + Space キーを押す
+#    → Spotlight 検索が開く
+#
+# ② 「terminal」と入力して Enter キー
+#
+# ③ 黒または白のウィンドウが開いたらOK
+#    プロンプト例:  yourname@MacBook ~ %`,
+              win: `# ① Windows キーを押す → 「Windows Terminal」と入力 → Enter
+#
+# ※ 未インストールの場合:
+#    Windows キー → 「Microsoft Store」→ 「Windows Terminal」を検索 → 「入手」
+#
+# ② PowerShell が起動する
+#    プロンプト例:  PS C:\\Users\\YourName>`,
+            },
+          ],
+        },
+        {
           type: 'alert',
           variant: 'warn',
           html: '🔑 <strong>手動インストールが必要な唯一の手順です。</strong> Claude Code の実行にはNode.jsが必要です。Homebrew・git・docker・mise・Python・GitHub認証はすべてStep 2でClaude Codeが自動設定します。',
@@ -254,11 +348,9 @@ claude --version`,
         },
         {
           type: 'mermaid',
-          diagram: `flowchart LR
+          diagram: `flowchart TD
     H["👤 あなた (Step 1完了)"]
-
     subgraph PIPELINE["🤖 Claude Code が自動実行"]
-        direction TB
         A["brew / winget インストール"] --> B["git, gh, docker, mise インストール"]
         B --> C["Python 3.9-3.13 を mise で設定"]
         C --> D["Claude エイリアスをシェルに追加"]
@@ -266,9 +358,7 @@ claude --version`,
         E --> F["gh auth login (ブラウザで承認)"]
         F --> G["✅ 全ツール確認"]
     end
-
     H --> A
-
     style H        fill:#1a2332,stroke:#58a6ff,color:#e6edf3
     style PIPELINE fill:#1a2d1a,stroke:#39d353,color:#e6edf3`,
         },
@@ -508,6 +598,111 @@ const phase3: Section = {
       badgeVariant: 'human',
       blocks: [
         {
+          type: 'audience',
+          for: 'beginner',
+          blocks: [
+            { type: 'sectionTitle', text: '🌱 XServer VPS 申し込み手順（初めての方）' },
+            {
+              type: 'ascii',
+              text: `XServer VPS 申し込みの流れ
+════════════════════════════════════════════════════════════
+
+① ブラウザで https://vps.xserver.ne.jp/ を開く
+   → 「今すぐ申し込む」をクリック
+
+② 「新規お申し込み」を選択
+   → メールアドレス・パスワード・名前・電話番号を入力
+   → 「次へ進む」をクリック
+
+③ メールの認証コード（数字6桁）を入力
+   → SMS認証（電話番号にコードが届く）を完了
+
+④ サーバー設定フォームが表示される（次のステップへ）`,
+            },
+            { type: 'sectionTitle', text: 'サーバー設定フォームの入力方法' },
+            {
+              type: 'ascii',
+              text: `サーバー申し込みフォーム
+════════════════════════════════════════════════════════════
+
+  ┌──────────────────────────────────────────────────────┐
+  │ プラン:      [2GB RAM プラン]  ← 推奨最小限          │
+  │ 契約期間:    [1ヶ月]  ← まず試すなら1ヶ月            │
+  │ OS:          [Ubuntu 22.04 LTS]  ← 必ずこれを選ぶ    │
+  │ SSHキー:     [SSH Keyの登録] ← 次のステップで説明    │
+  │ ポート設定:  SSH(22) ON  ← デフォルトのままでOK      │
+  └──────────────────────────────────────────────────────┘
+
+  「確認画面へ進む」→「お支払いへ進む」→ カード情報入力
+  → 完了メールが届く（数分後にVPSが起動）`,
+            },
+            { type: 'sectionTitle', text: '⚠️ SSHキーのダウンロード（最重要！）' },
+            {
+              type: 'ascii',
+              text: `SSHキーの登録とダウンロード
+════════════════════════════════════════════════════════════
+
+申し込みフォームの「SSH Keyの登録」をクリック:
+
+  ┌──────────────────────────────────────────────────────┐
+  │ キー名:     [my-vps-key       ]  ← 何でもOK         │
+  │ 生成方法:   ● 自動生成  ← 必ずこれを選択            │
+  │             ○ 手動入力                               │
+  │                                                      │
+  │             [確認画面へ進む]                         │
+  └──────────────────────────────────────────────────────┘
+                          ↓ 次の画面
+  ┌──────────────────────────────────────────────────────┐
+  │  ✅ SSHキーを登録しました                            │
+  │                                                      │
+  │  [📥 ダウンロードする]  ← 必ずクリック！             │
+  │                                                      │
+  │  ⚠️  このウィンドウを閉じると                        │
+  │      二度とダウンロードできません                    │
+  └──────────────────────────────────────────────────────┘
+
+  → ダウンロードフォルダに xserver-vps.pem が保存される
+  → その後「登録する」→ 申し込み完了へ進む
+
+ダウンロードしたファイル: xserver-vps.pem
+保存場所（確認方法）:`,
+            },
+            {
+              type: 'code',
+              mac: `# Macでダウンロードフォルダを確認
+ls ~/Downloads/
+# xserver-vps.pem が表示されればOK`,
+              win: `# PowerShellでダウンロードフォルダを確認
+dir "$env:USERPROFILE\\Downloads"
+# xserver-vps.pem が表示されればOK`,
+            },
+            { type: 'sectionTitle', text: 'VPSのIPアドレスを確認する' },
+            {
+              type: 'ascii',
+              text: `IPアドレスの確認方法
+════════════════════════════════════════════════════════════
+
+申し込み完了後 → VPSパネルにログイン:
+  https://secure.xserver.ne.jp/xapanel/vps/
+
+  ┌──────────────────────────────────────────────────────┐
+  │  XServer VPS パネル                                  │
+  ├──────────────────────────────────────────────────────┤
+  │  サーバー名: my-server                               │
+  │  IPアドレス: [103.xx.xx.xx]  ← ここをコピー！       │
+  │  OS:         Ubuntu 22.04 LTS                        │
+  │  プラン:     2GB                                     │
+  │  稼働状況:  ● 稼働中                                │
+  └──────────────────────────────────────────────────────┘
+
+このIPアドレスはこの後の手順でよく使います。
+メモ帳などにコピーしておいてください。
+
+形式例: 103.12.34.56（4つの数字がドットで区切られている）`,
+            },
+          ],
+        },
+        {
           type: 'checks',
           items: [
             { id: 'p3-1-a', label: 'プラン選択済み — OSにUbuntu 24.04 LTSを選択' },
@@ -523,6 +718,70 @@ const phase3: Section = {
       badgeLabel: 'STEP 2',
       badgeVariant: 'human',
       blocks: [
+        {
+          type: 'audience',
+          for: 'beginner',
+          blocks: [
+            { type: 'sectionTitle', text: '🌱 SSHとは？（初心者向け解説）' },
+            {
+              type: 'ascii',
+              text: `SSH（セキュアシェル）= 遠隔操作の暗号化電話回線
+════════════════════════════════════════════════════════════
+
+  あなたのパソコン              世界のどこかにあるサーバー
+  ┌─────────────┐  暗号化通信  ┌─────────────────────┐
+  │  ターミナル  │ ←── SSH ──→ │  XServer VPS        │
+  └─────────────┘              └─────────────────────┘
+  （画面・キーボード）           （画面もキーボードもない）
+
+  → ターミナルに入力したコマンドがインターネットを越えて
+    サーバーに届き、サーバーが実行して結果を返してくれる
+  → サーバーには画面もキーボードもない —
+    ターミナルがその代わり
+
+なぜ .pem ファイルが必要？
+────────────────────────────
+  パスワード方式 = 誰かが何千回も推測できる（危険）
+
+  鍵ファイル方式（.pem）= 数千文字のランダムデータ
+  → 推測不可能。鍵と鍵穴が一致するときだけ接続できる
+
+  ┌──────────────┐         ┌────────────────────────┐
+  │ xvps.pem     │  照合   │  サーバーの「公開鍵」   │
+  │（あなたの鍵） │ ←────→ │ （XServerが設定済み）   │
+  └──────────────┘         └────────────────────────┘
+  ↑ 絶対に他人に見せないこと！GitHubにも上げないこと！
+
+════════════════════════════════════════════════════════════`,
+            },
+            { type: 'sectionTitle', text: '鍵ファイルの移動と接続の流れ' },
+            {
+              type: 'ascii',
+              text: `SSH接続 ステップバイステップ
+════════════════════════════════════════════════════════════
+
+  STEP 1: xvps.pem を安全な場所に移動
+          ダウンロードフォルダ → ~/.ssh/ フォルダ
+
+  STEP 2: 鍵ファイルの権限を「自分だけ読める」に設定
+          （Macのみ必須 / Windowsはコマンドで対応）
+
+  STEP 3: SSHコマンドで接続
+          ssh -i [鍵ファイル] root@[IPアドレス]
+              ↑                    ↑
+           鍵ファイルの場所       VPSパネルで確認したIP
+
+  STEP 4: 接続成功すると以下のような表示が出る:
+          ┌──────────────────────────────────────┐
+          │  Welcome to Ubuntu 22.04.x LTS       │
+          │  root@my-server:~#                   │ ← サーバーを操作中！
+          └──────────────────────────────────────┘
+          （終了は exit と入力して Enter）
+
+════════════════════════════════════════════════════════════`,
+            },
+          ],
+        },
         {
           type: 'checks',
           items: [
@@ -821,23 +1080,6 @@ const risks: Section = {
     </tr>
   </tbody>
 </table>`,
-    },
-    { type: 'sectionTitle', text: '◆ 機会費用 — 手動 vs AI委任' },
-    {
-      type: 'mermaid',
-      diagram: `xychart-beta
-    title "手動アプローチ — タスク別所要時間 (分)"
-    x-axis ["調査・確認", "ツール設定", "SSH鍵", "VPS契約", "Docker", "Caddy TLS"]
-    y-axis "分" 0 --> 100
-    bar [60, 45, 30, 30, 60, 90]`,
-    },
-    {
-      type: 'mermaid',
-      diagram: `xychart-beta
-    title "合計時間比較 — 手動 315分 vs AI委任 50分 (6倍速)"
-    x-axis ["手動アプローチ", "AI委任"]
-    y-axis "分" 0 --> 320
-    bar [315, 50]`,
     },
     {
       type: 'ascii',

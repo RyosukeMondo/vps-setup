@@ -6,6 +6,7 @@ import AsciiDiagram from './AsciiDiagram.astro';
 import Terminal from './Terminal.astro';
 import OSCodeBlock from './OSCodeBlock.astro';
 import Checklist from './Checklist.astro';
+import ContentBlocks from './ContentBlocks.astro';
 
 interface Props {
   blocks: ContentBlock[];
@@ -23,5 +24,10 @@ const { blocks } = Astro.props;
     {b.type === 'code'         && <OSCodeBlock mac={b.mac} win={b.win} common={b.common} />}
     {b.type === 'checks'       && <Checklist items={b.items} />}
     {b.type === 'html'         && <div set:html={b.content} />}
+    {b.type === 'audience'     && (
+      <div class={`${b.for}-only beginner-box`}>
+        <ContentBlocks blocks={b.blocks} />
+      </div>
+    )}
   </>
 ))}
