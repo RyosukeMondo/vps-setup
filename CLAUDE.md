@@ -23,6 +23,11 @@ npm run check:mermaid
 - Never use Japanese/CJK in gantt task or section names
 - `after id` relative dates do **not** work with `dateFormat HH:mm` — use absolute times
 
+### Prefer xychart-beta over gantt
+
+`gantt` charts are unreliable in Mermaid 10.x (black box, negative rect widths, date parser issues).
+Use `xychart-beta` bar charts instead for time/comparison data — no date format, no label-overflow.
+
 ### Other known Mermaid 10.x limits
 
 - Cannot connect an external node to a **subgraph ID** as edge target (`H --> SUBGRAPH_ID` fails)
