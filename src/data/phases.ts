@@ -87,10 +87,9 @@ const overview: Section = {
         P1C --> P1D["🤖 Claude Code: Python versions · alias · skills dir · gh auth"]
     end
 
-    subgraph P2["PHASE 2 · Claude Code"]
+    subgraph P2["PHASE 2 · Claude Code Reference"]
         direction TB
-        P2A[npm install -g @anthropic-ai/claude-code] --> P2B[Set alias in .zshrc/.bashrc]
-        P2B --> P2C[Create ~/.claude/skills/vps-caddy-proxy.md]
+        P2A[Verify alias active] --> P2B[Verify skills dir + gh auth]
     end
 
     subgraph P3["PHASE 3 · Infrastructure"]
