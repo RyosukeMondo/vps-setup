@@ -255,20 +255,22 @@ claude --version`,
         {
           type: 'mermaid',
           diagram: `flowchart LR
-    H["👤 あなた<br/>(Step 1完了)"] --> AUTOMATE
+    H["👤 あなた (Step 1完了)"]
 
-    subgraph AUTOMATE["🤖 Claude Code が自動実行"]
+    subgraph PIPELINE["🤖 Claude Code が自動実行"]
         direction TB
-        A["Homebrew / winget<br/>インストール"] --> B["brew/winget install<br/>git · gh · docker · mise"]
-        B --> C["mise use --global<br/>Python 3.9 → 3.13"]
-        C --> D["エイリアスを<br/>シェル設定に追加"]
-        D --> E["~/.claude/skills/<br/>vps-caddy-proxy.md 作成"]
-        E --> F["gh auth login<br/>（ブラウザで承認）"]
+        A["brew / winget インストール"] --> B["git, gh, docker, mise インストール"]
+        B --> C["Python 3.9-3.13 を mise で設定"]
+        C --> D["Claude エイリアスをシェルに追加"]
+        D --> E["skills/vps-caddy-proxy.md 作成"]
+        E --> F["gh auth login (ブラウザで承認)"]
         F --> G["✅ 全ツール確認"]
     end
 
+    H --> A
+
     style H        fill:#1a2332,stroke:#58a6ff,color:#e6edf3
-    style AUTOMATE fill:#1a2d1a,stroke:#39d353,color:#e6edf3`,
+    style PIPELINE fill:#1a2d1a,stroke:#39d353,color:#e6edf3`,
         },
         {
           type: 'alert',
@@ -754,19 +756,19 @@ const risks: Section = {
     {
       type: 'mermaid',
       diagram: `quadrantChart
-    title リスク評価マトリクス
-    x-axis 低確率 --> 高確率
-    y-axis 低影響 --> 高影響
-    quadrant-1 要監視
-    quadrant-2 重大リスク
-    quadrant-3 低優先
-    quadrant-4 高確率だが対処可能
-    DNS伝播の遅延: [0.75, 0.6]
-    危険なプロンプト実行: [0.2, 0.95]
-    Python依存関係の競合: [0.85, 0.5]
-    SSHキー漏洩: [0.1, 0.9]
-    Caddy証明書エラー: [0.6, 0.55]
-    OSパッケージ競合: [0.7, 0.45]`,
+    title Risk Assessment Matrix
+    x-axis Low Probability --> High Probability
+    y-axis Low Impact --> High Impact
+    quadrant-1 Monitor Closely
+    quadrant-2 Critical Risks
+    quadrant-3 Low Priority
+    quadrant-4 Likely but Manageable
+    DNS propagation delay: [0.75, 0.6]
+    Bad prompt execution: [0.2, 0.95]
+    Python dependency conflicts: [0.85, 0.5]
+    SSH key exposure: [0.1, 0.9]
+    Caddy cert failure: [0.6, 0.55]
+    OS package conflicts: [0.7, 0.45]`,
     },
     { type: 'sectionTitle', text: '◆ リスク詳細一覧' },
     {
@@ -824,22 +826,22 @@ const risks: Section = {
     {
       type: 'mermaid',
       diagram: `gantt
-    title 手動 vs AI委任 — セットアップ所要時間
+    title Manual vs AI-Delegated Setup Time
     dateFormat HH:mm
     axisFormat %H:%M
 
-    section 手動アプローチ（約315分）
-    リサーチと資料確認      :t1, 00:00, 60m
-    ツールの個別インストール :t2, after t1, 45m
-    SSHキー設定             :t3, after t2, 30m
-    VPS契約と設定           :t4, after t3, 30m
-    Dockerインストール       :t5, after t4, 60m
-    Caddy設定とTLS確認      :t6, after t5, 90m
+    section Manual Approach
+    Research and docs    :t1, 00:00, 60m
+    Tool installation    :t2, after t1, 45m
+    SSH key setup        :t3, after t2, 30m
+    VPS contract         :t4, after t3, 30m
+    Docker install       :t5, after t4, 60m
+    Caddy TLS setup      :t6, after t5, 90m
 
-    section AIガイドの場合（約50分）
-    Phase 1-2 ローカル設定  :a1, 00:00, 20m
-    Phase 3 VPS契約         :a2, after a1, 15m
-    Phase 4 Claude実行      :a3, after a2, 15m`,
+    section AI-Delegated
+    Phase 1-2 local      :a1, 00:00, 20m
+    Phase 3 VPS          :a2, after a1, 15m
+    Phase 4 Claude       :a3, after a2, 15m`,
     },
     {
       type: 'ascii',
