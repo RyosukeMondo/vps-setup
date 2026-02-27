@@ -430,6 +430,84 @@
 
     footer a { color: var(--cyan); text-decoration: none; }
 
+    /* ─── OS SWITCHER ───────────────────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 16px 0 0;
+      flex-wrap: wrap;
+    }
+
+    .os-toggle {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px;
+    }
+
+    .os-btn {
+      padding: 5px 16px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 12px;
+      border-radius: 4px;
+      transition: all .2s;
+    }
+
+    .os-btn:hover { color: var(--text); }
+
+    .os-btn.active {
+      background: var(--bg2);
+      border-color: var(--border);
+      color: var(--green);
+    }
+
+    .os-label {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    /* visibility rules driven by body class */
+    body.os-win .mac-only { display: none !important; }
+    body.os-mac .win-only { display: none !important; }
+
+    /* ─── RESET BUTTON ──────────────────────────────────────────────── */
+    .reset-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 5px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 12px;
+      transition: all .2s;
+      letter-spacing: 1px;
+    }
+
+    .reset-btn:hover { border-color: var(--red); color: var(--red); }
+
+    .reset-btn.confirm {
+      border-color: var(--red);
+      color: var(--red);
+      animation: shake .3s ease;
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-4px); }
+      75%      { transform: translateX(4px); }
+    }
+
     /* ─── RESPONSIVE ────────────────────────────────────────────────── */
     @media(max-width:600px) {
       .ascii-hero { font-size: 8px; }
@@ -457,6 +535,16 @@
       XServer VPS ·
       Caddy Reverse Proxy
     </p>
+
+    <!-- OS switcher + Reset -->
+    <div class="toolbar">
+      <span class="os-label">OS:</span>
+      <div class="os-toggle">
+        <button class="os-btn active" id="btnMac" onclick="setOS('mac')">🍎 Mac</button>
+        <button class="os-btn"        id="btnWin" onclick="setOS('win')">🪟 Windows</button>
+      </div>
+      <button class="reset-btn" id="resetBtn" onclick="resetAll()">[ RESET PROGRESS ]</button>
+    </div>
 
     <div class="progress-wrap" id="globalProgress">
       <span class="progress-label">MISSION PROGRESS&nbsp;<span id="pct">0%</span></span>
@@ -622,13 +710,22 @@ graph LR
     </div>
     <div class="card-body">
       <ul class="checklist" id="cl-p1-1">
-        <li data-id="p1-1-a" onclick="toggleCheck(this)">
+        <li class="mac-only" data-id="p1-1-a" onclick="toggleCheck(this)">
           <span class="check-box"></span>
-          Mac: Homebrew installed (<code>/bin/bash -c "$(curl -fsSL https://brew.sh/install.sh)"</code>)
+          Homebrew installed
+          <div class="code-wrap mac-only" style="margin-top:6px">
+            <button class="copy-btn" onclick="event.stopPropagation();copyCode(this)">COPY</button>
+            <pre><code>/bin/bash -c "$(curl -fsSL https://brew.sh/install.sh)"</code></pre>
+          </div>
         </li>
-        <li data-id="p1-1-b" onclick="toggleCheck(this)">
+        <li class="win-only" data-id="p1-1-b" onclick="toggleCheck(this)">
           <span class="check-box"></span>
-          Windows: WSL2 enabled with Ubuntu distro (or Winget available)
+          WSL2 enabled (Windows 10 2004+ / 11) — open PowerShell as Admin:
+          <div class="code-wrap win-only" style="margin-top:6px">
+            <button class="copy-btn" onclick="event.stopPropagation();copyCode(this)">COPY</button>
+            <pre><code>wsl --install
+# Restart, then open Ubuntu from Start menu to complete setup</code></pre>
+          </div>
         </li>
       </ul>
     </div>
@@ -654,12 +751,13 @@ graph LR
           Docker Desktop launched and running
         </li>
       </ul>
-      <div class="terminal">
+      <!-- Mac terminal -->
+      <div class="terminal mac-only">
         <div class="terminal-bar">
           <div class="dot dot-r"></div>
           <div class="dot dot-y"></div>
           <div class="dot dot-g"></div>
-          <span class="terminal-title">Terminal — Mac</span>
+          <span class="terminal-title">Terminal — macOS</span>
         </div>
         <div class="terminal-body">
           <div><span class="t-comment"># Install all core tools in one shot</span></div>
@@ -669,9 +767,35 @@ graph LR
           <div><span class="t-out">Docker version 26.x.x, Node.js v22.x.x, gh version 2.x.x</span></div>
         </div>
       </div>
-      <div class="code-wrap">
+      <div class="code-wrap mac-only">
         <button class="copy-btn" onclick="copyCode(this)">COPY</button>
         <pre><code>brew install git gh node docker</code></pre>
+      </div>
+
+      <!-- Windows terminal -->
+      <div class="terminal win-only">
+        <div class="terminal-bar">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+          <span class="terminal-title">PowerShell (winget) — Windows</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-comment"># Install via winget (Windows Package Manager)</span></div>
+          <div><span class="t-prompt">PS> </span><span class="t-cmd">winget install Git.Git GitHub.cli OpenJS.NodeJS Docker.DockerDesktop</span></div>
+          <div><span class="t-out">... installing ...</span></div>
+          <div><span class="t-comment"># Restart terminal, then verify</span></div>
+          <div><span class="t-prompt">PS> </span><span class="t-cmd">docker --version; node --version; gh --version</span></div>
+          <div><span class="t-out">Docker version 26.x.x, Node.js v22.x.x, gh version 2.x.x</span></div>
+        </div>
+      </div>
+      <div class="code-wrap win-only">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre><code>winget install Git.Git GitHub.cli OpenJS.NodeJS Docker.DockerDesktop</code></pre>
+      </div>
+      <div class="alert win-only alert-info" style="margin-top:8px">
+        💡 <strong>WSL2 users</strong>: Docker Desktop integrates with WSL2 automatically.
+        Enable it via Docker Desktop → Settings → Resources → WSL Integration.
       </div>
     </div>
   </div>
@@ -722,9 +846,21 @@ graph TD
           Python 3.9–3.13 installed via mise
         </li>
       </ul>
-      <div class="code-wrap">
+      <div class="code-wrap mac-only">
         <button class="copy-btn" onclick="copyCode(this)">COPY</button>
         <pre><code>brew install mise
+mise use --global python@3.9 python@3.10 python@3.11 python@3.12 python@3.13</code></pre>
+      </div>
+      <div class="code-wrap win-only">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre><code># Option A — winget (PowerShell)
+winget install jdx.mise
+
+# Option B — inside WSL2 Ubuntu terminal
+curl https://mise.run | sh
+echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
+source ~/.bashrc
+
 mise use --global python@3.9 python@3.10 python@3.11 python@3.12 python@3.13</code></pre>
       </div>
     </div>
@@ -829,20 +965,38 @@ claude --version</code></pre>
         add "list commands before executing" to your prompt.
       </div>
       <ul class="checklist" id="cl-p2-2">
-        <li data-id="p2-2-a" onclick="toggleCheck(this)">
+        <li class="mac-only" data-id="p2-2-a" onclick="toggleCheck(this)">
           <span class="check-box"></span>
-          Alias added to <code>~/.zshrc</code> or <code>~/.bashrc</code>
+          Alias added to <code>~/.zshrc</code> (zsh) or <code>~/.bashrc</code> (bash)
         </li>
-        <li data-id="p2-2-b" onclick="toggleCheck(this)">
+        <li class="mac-only" data-id="p2-2-b" onclick="toggleCheck(this)">
           <span class="check-box"></span>
           Shell reloaded: <code>source ~/.zshrc</code>
         </li>
+        <li class="win-only" data-id="p2-2-c" onclick="toggleCheck(this)">
+          <span class="check-box"></span>
+          PowerShell function added to profile (<code>$PROFILE</code>), OR alias in WSL2 <code>~/.bashrc</code>
+        </li>
+        <li class="win-only" data-id="p2-2-d" onclick="toggleCheck(this)">
+          <span class="check-box"></span>
+          Shell reloaded: <code>. $PROFILE</code> (PowerShell) or <code>source ~/.bashrc</code> (WSL2)
+        </li>
       </ul>
-      <div class="code-wrap">
+      <div class="code-wrap mac-only">
         <button class="copy-btn" onclick="copyCode(this)">COPY</button>
         <pre><code># Add to ~/.zshrc or ~/.bashrc
 alias claude="claude --dangerously-skip-permissions"
 source ~/.zshrc</code></pre>
+      </div>
+      <div class="code-wrap win-only">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre><code># PowerShell — add to $PROFILE (run: notepad $PROFILE)
+function claude { claude.cmd --dangerously-skip-permissions @args }
+
+# --- OR inside WSL2 Ubuntu ---
+# Add to ~/.bashrc
+alias claude="claude --dangerously-skip-permissions"
+source ~/.bashrc</code></pre>
       </div>
     </div>
   </div>
@@ -898,11 +1052,22 @@ source ~/.zshrc</code></pre>
           <code>vps-caddy-proxy.md</code> written with Caddy + Nginx Docker Compose template
         </li>
       </ul>
-      <div class="code-wrap">
+      <div class="code-wrap mac-only">
         <button class="copy-btn" onclick="copyCode(this)">COPY</button>
         <pre><code>mkdir -p ~/.claude/skills
 touch ~/.claude/skills/vps-caddy-proxy.md
 # Then edit with your preferred editor and paste the Docker Compose template</code></pre>
+      </div>
+      <div class="code-wrap win-only">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre><code># PowerShell
+New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills"
+New-Item -ItemType File -Force "$env:USERPROFILE\.claude\skills\vps-caddy-proxy.md"
+notepad "$env:USERPROFILE\.claude\skills\vps-caddy-proxy.md"
+
+# --- OR inside WSL2 ---
+mkdir -p ~/.claude/skills
+touch ~/.claude/skills/vps-caddy-proxy.md</code></pre>
       </div>
     </div>
   </div>
@@ -963,9 +1128,21 @@ touch ~/.claude/skills/vps-caddy-proxy.md
           Test connection successful: <code>ssh -i ~/.ssh/xvps.pem root@&lt;VPS_IP&gt;</code>
         </li>
       </ul>
-      <div class="code-wrap">
+      <div class="code-wrap mac-only">
         <button class="copy-btn" onclick="copyCode(this)">COPY</button>
         <pre><code>mv ~/Downloads/xvps.pem ~/.ssh/
+chmod 600 ~/.ssh/xvps.pem
+ssh -i ~/.ssh/xvps.pem root@&lt;YOUR_VPS_IP&gt;</code></pre>
+      </div>
+      <div class="code-wrap win-only">
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        <pre><code># PowerShell — move key and fix permissions
+Move-Item "$env:USERPROFILE\Downloads\xvps.pem" "$env:USERPROFILE\.ssh\xvps.pem"
+icacls "$env:USERPROFILE\.ssh\xvps.pem" /inheritance:r /grant:r "${env:USERNAME}:(R)"
+ssh -i "$env:USERPROFILE\.ssh\xvps.pem" root@&lt;YOUR_VPS_IP&gt;
+
+# --- OR inside WSL2 (recommended — avoids Windows permission quirks) ---
+cp /mnt/c/Users/$USER/Downloads/xvps.pem ~/.ssh/
 chmod 600 ~/.ssh/xvps.pem
 ssh -i ~/.ssh/xvps.pem root@&lt;YOUR_VPS_IP&gt;</code></pre>
       </div>
@@ -1355,6 +1532,25 @@ gantt
     document.getElementById(id).classList.toggle('collapsed');
   }
 
+  /* ── OS switcher ───────────────────────────────────────────── */
+  const OS_KEY = 'vps-setup-os';
+  let currentOS = 'mac';
+
+  function setOS(os) {
+    currentOS = os;
+    localStorage.setItem(OS_KEY, os);
+    document.body.classList.toggle('os-win', os === 'win');
+    document.body.classList.toggle('os-mac', os === 'mac');
+    document.getElementById('btnMac').classList.toggle('active', os === 'mac');
+    document.getElementById('btnWin').classList.toggle('active', os === 'win');
+    updateProgress(); // recount visible items
+  }
+
+  function loadOS() {
+    const saved = localStorage.getItem(OS_KEY) || 'mac';
+    setOS(saved);
+  }
+
   /* ── Checklist + progress ─────────────────────────────────── */
   const STATE_KEY = 'vps-setup-checklist';
   let state = {};
@@ -1366,6 +1562,12 @@ gantt
 
   function saveState() {
     localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  }
+
+  function isVisibleItem(li) {
+    if (li.classList.contains('mac-only') && currentOS === 'win') return false;
+    if (li.classList.contains('win-only') && currentOS === 'mac') return false;
+    return true;
   }
 
   function toggleCheck(li) {
@@ -1388,15 +1590,15 @@ gantt
   }
 
   function updateProgress() {
-    const all  = document.querySelectorAll('[data-id]');
-    const done = Array.from(all).filter(li => state[li.dataset.id]).length;
-    const total = all.length;
-    const pct   = total ? Math.round(done / total * 100) : 0;
+    const all     = Array.from(document.querySelectorAll('[data-id]')).filter(isVisibleItem);
+    const done    = all.filter(li => state[li.dataset.id]).length;
+    const total   = all.length;
+    const pct     = total ? Math.round(done / total * 100) : 0;
 
-    document.getElementById('pct').textContent       = pct + '%';
+    document.getElementById('pct').textContent          = pct + '%';
     document.getElementById('progressFill').style.width = pct + '%';
-    document.getElementById('doneCount').textContent  = done;
-    document.getElementById('totalCount').textContent = total;
+    document.getElementById('doneCount').textContent    = done;
+    document.getElementById('totalCount').textContent   = total;
   }
 
   function restoreChecklist() {
@@ -1404,6 +1606,33 @@ gantt
       if (state[li.dataset.id]) applyState(li, true);
     });
     updateProgress();
+  }
+
+  /* ── Reset all ────────────────────────────────────────────── */
+  let resetPending = false;
+
+  function resetAll() {
+    const btn = document.getElementById('resetBtn');
+    if (!resetPending) {
+      // First click — ask for confirmation
+      resetPending = true;
+      btn.textContent = '[ CONFIRM RESET? ]';
+      btn.classList.add('confirm');
+      setTimeout(() => {
+        resetPending = false;
+        btn.textContent = '[ RESET PROGRESS ]';
+        btn.classList.remove('confirm');
+      }, 2500);
+      return;
+    }
+    // Second click — actually reset
+    resetPending = false;
+    state = {};
+    saveState();
+    document.querySelectorAll('[data-id]').forEach(li => applyState(li, false));
+    updateProgress();
+    btn.textContent = '[ RESET PROGRESS ]';
+    btn.classList.remove('confirm');
   }
 
   /* ── Copy to clipboard ────────────────────────────────────── */
@@ -1420,6 +1649,7 @@ gantt
   }
 
   /* ── Init ─────────────────────────────────────────────────── */
+  loadOS();
   loadState();
   restoreChecklist();
 </script>
