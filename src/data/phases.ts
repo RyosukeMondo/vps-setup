@@ -53,26 +53,42 @@ const overview: Section = {
   title: 'System Architecture Overview',
   blocks: [
     {
-      type: 'ascii',
-      text: `LOCAL MACHINE                 INTERNET                  XSERVER VPS
-┌─────────────────────┐       ┌──────────────┐          ┌──────────────────────────────┐
-│  ┌───────────────┐  │       │              │          │  ┌────────────────────────┐  │
-│  │  Claude Code  │──┼──SSH──┼──────────────┼──────────┼─▶│  Ubuntu 24.04 (root)  │  │
-│  └───────┬───────┘  │       │              │          │  └───────────┬────────────┘  │
-│          │          │       │  DNS A Record│          │             │                │
-│  ┌───────▼───────┐  │       │  domain.xvps │          │  ┌──────────▼─────────────┐  │
-│  │   ~/.ssh/     │  │       │  .jp → VPS IP│          │  │   Docker Engine        │  │
-│  │  xvps.pem     │  │       │              │          │  │  ┌─────────────────┐   │  │
-│  │  id_ed25519   │  │       └──────────────┘          │  │  │  Caddy :80/:443 │   │  │
-│  └───────────────┘  │                                 │  │  │  (TLS auto cert)│   │  │
-│                     │       ┌──────────────┐          │  │  └────────┬────────┘   │  │
-│  ┌───────────────┐  │       │   GitHub     │          │  │           │reverse     │  │
-│  │ ~/.claude/    │  │       │   Pages /    │          │  │  ┌────────▼────────┐   │  │
-│  │  skills/      │  │       │   Actions    │          │  │  │  Nginx :8080    │   │  │
-│  │  CLAUDE.md    │  │       └──────────────┘          │  │  │  (sample app)  │   │  │
-│  └───────────────┘  │                                 │  │  └─────────────────┘   │  │
-└─────────────────────┘                                 │  └────────────────────────┘  │
-                                                        └──────────────────────────────┘`,
+      type: 'mermaid',
+      diagram: `flowchart LR
+    subgraph LOCAL["💻 LOCAL MACHINE"]
+        direction TB
+        CC["Claude Code"]
+        KEYS["~/.ssh/\nxvps.pem · id_ed25519"]
+        CONFIG["~/.claude/skills/\nCLAUDE.md"]
+    end
+
+    subgraph NET["🌐 INTERNET"]
+        direction TB
+        DNS["DNS A Record\ndomain.xvps.jp → VPS IP"]
+        GH["GitHub\nPages / Actions"]
+    end
+
+    subgraph VPS["🖥️ XSERVER VPS · Ubuntu 24.04"]
+        direction TB
+        UBUNTU["root user\n(initial SSH)"]
+        subgraph DOCKER["⚙ Docker Engine"]
+            CADDY["Caddy\n:80 / :443\n(TLS auto cert)"]
+            NGINX["Nginx\n:8080\n(sample app)"]
+        end
+        UBUNTU --- DOCKER
+        CADDY -->|"reverse proxy"| NGINX
+    end
+
+    CC -->|"SSH 🔒"| UBUNTU
+    DNS -.->|"A record"| VPS
+    GH -.->|"CI / Pages"| NET
+
+    style LOCAL  fill:#1a2332,stroke:#58a6ff,color:#e6edf3
+    style NET    fill:#21262d,stroke:#8b949e,color:#e6edf3
+    style VPS    fill:#1a2332,stroke:#e3b341,color:#e6edf3
+    style DOCKER fill:#0d1117,stroke:#30363d,color:#e6edf3
+    style CADDY  fill:#1a2d1a,stroke:#39d353,color:#e6edf3
+    style NGINX  fill:#21262d,stroke:#30363d,color:#e6edf3`,
     },
     { type: 'sectionTitle', text: '◆ Critical Path · 4-Phase Execution Plan' },
     {
@@ -122,34 +138,45 @@ const overview: Section = {
     { type: 'sectionTitle', text: '◆ Dependency Graph · What blocks what?' },
     {
       type: 'mermaid',
-      diagram: `graph LR
-    VPS[XServer VPS running]
-    SSH[SSH key in ~/.ssh/]
-    GH[gh auth login done]
-    NODE[Node.js installed]
-    CC[Claude Code installed]
-    SMDF[server.md created]
-    SKILL[skills/vps-caddy-proxy.md]
-    REMOTE[SSH to VPS works]
-    DOCKER[Docker on VPS]
-    CADDY[Caddy container up]
-    LIVE[🌐 HTTPS site live]
+      diagram: `flowchart TD
+    subgraph LOCAL["💻 Local Prerequisites"]
+        GH[gh auth login done]
+        NODE[Node.js installed]
+        VPS[XServer VPS running]
+    end
 
+    subgraph SETUP["🔧 Setup Layer"]
+        SSH[SSH key in ~/.ssh/]
+        CC[Claude Code installed]
+        SMDF[server.md created]
+        SKILL[skills/vps-caddy-proxy.md]
+    end
+
+    subgraph REMOTE_LAYER["🖥️ Remote Layer"]
+        REMOTE[SSH to VPS works]
+        DOCKER[Docker on VPS]
+    end
+
+    CADDY[Caddy container up]
+    LIVE([🌐 HTTPS site live])
+
+    GH --> SSH
+    NODE --> CC
     SSH --> REMOTE
     VPS --> REMOTE
+    CC --> REMOTE
+    SMDF --> REMOTE
     REMOTE --> DOCKER
+    SKILL --> CADDY
     DOCKER --> CADDY
     CADDY --> LIVE
 
-    NODE --> CC
-    GH --> SSH
-    CC --> REMOTE
-    SMDF --> REMOTE
-    SKILL --> CADDY
-
+    style LOCAL fill:#1a2332,stroke:#58a6ff,color:#e6edf3
+    style SETUP fill:#1a2d1a,stroke:#39d353,color:#e6edf3
+    style REMOTE_LAYER fill:#2d1a2d,stroke:#bc8cff,color:#e6edf3
     style LIVE fill:#21262d,stroke:#39d353,color:#39d353
-    style CC  fill:#1a2332,stroke:#bc8cff,color:#e6edf3
-    style VPS fill:#1a2332,stroke:#e3b341,color:#e6edf3`,
+    style CC   fill:#1a2332,stroke:#bc8cff,color:#e6edf3
+    style VPS  fill:#1a2332,stroke:#e3b341,color:#e6edf3`,
     },
   ],
 };
