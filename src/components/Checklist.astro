@@ -1,0 +1,26 @@
+---
+import type { CheckItem } from '../data/phases';
+
+interface Props {
+  items: CheckItem[];
+}
+const { items } = Astro.props;
+---
+
+<ul class="checklist">
+  {items.map(item => (
+    <li
+      class:list={[item.os ? `${item.os}-only` : '']}
+      data-id={item.id}
+    >
+      <span class="check-box"></span>
+      <span set:html={item.label} />
+      {item.inlineCode && (
+        <div class="code-wrap" style="margin-top:6px; width:100%">
+          <button class="copy-btn">COPY</button>
+          <pre><code>{item.inlineCode}</code></pre>
+        </div>
+      )}
+    </li>
+  ))}
+</ul>

@@ -1,0 +1,24 @@
+---
+import type { Step } from '../data/phases';
+import ContentBlocks from './ContentBlocks.astro';
+
+interface Props {
+  step: Step;
+}
+const { step } = Astro.props;
+---
+
+<div class="card" id={step.id}>
+  <div class="card-header">
+    <span class="card-title">
+      {step.badgeLabel && (
+        <span class:list={['phase-badge', step.badgeVariant === 'warn' ? 'warn' : '']}>{step.badgeLabel}</span>
+      )}
+      <span set:html={step.titleHtml} />
+    </span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="card-body">
+    <ContentBlocks blocks={step.blocks} />
+  </div>
+</div>

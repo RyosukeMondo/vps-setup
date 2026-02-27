@@ -1,0 +1,29 @@
+---
+interface Props {
+  mac?: string;
+  win?: string;
+  common?: string;
+}
+const { mac, win, common } = Astro.props;
+---
+
+{mac && (
+  <div class="code-wrap mac-only">
+    <button class="copy-btn">COPY</button>
+    <pre><code>{mac}</code></pre>
+  </div>
+)}
+
+{win && (
+  <div class="code-wrap win-only">
+    <button class="copy-btn">COPY</button>
+    <pre><code>{win}</code></pre>
+  </div>
+)}
+
+{common && (
+  <div class="code-wrap">
+    <button class="copy-btn">COPY</button>
+    <pre><code>{common}</code></pre>
+  </div>
+)}

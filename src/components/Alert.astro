@@ -1,0 +1,10 @@
+---
+interface Props {
+  variant: 'info' | 'warn' | 'danger';
+  html: string;
+  os?: 'mac' | 'win';
+}
+const { variant, html, os } = Astro.props;
+const classes = ['alert', `alert-${variant}`, os ? `${os}-only` : ''].filter(Boolean).join(' ');
+---
+<div class={classes} set:html={html} />

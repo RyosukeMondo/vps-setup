@@ -1,0 +1,43 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ContentBlocks from '../components/ContentBlocks.astro';
+import PhaseCard from '../components/PhaseCard.astro';
+import Alert from '../components/Alert.astro';
+import { SECTIONS } from '../data/phases';
+---
+
+<Layout>
+  <div class="container">
+    <!-- Nav Tabs -->
+    <nav class="nav-tabs" id="navTabs">
+      {SECTIONS.map((section, i) => (
+        <button
+          class:list={['nav-tab', i === 0 ? 'active' : '']}
+          data-target={section.id}
+        >
+          {section.navLabel}
+        </button>
+      ))}
+    </nav>
+
+    <!-- Sections -->
+    {SECTIONS.map((section, i) => (
+      <section class:list={['section', i === 0 ? 'active' : '']} id={section.id}>
+        <h2 class="section-title" set:html={section.title} />
+
+        {section.headerAlert && (
+          <Alert
+            variant={section.headerAlert.variant}
+            html={section.headerAlert.html}
+          />
+        )}
+
+        {section.blocks && <ContentBlocks blocks={section.blocks} />}
+
+        {section.steps && section.steps.map(step => (
+          <PhaseCard step={step} />
+        ))}
+      </section>
+    ))}
+  </div>
+</Layout>

@@ -1,0 +1,51 @@
+---
+import type { TerminalVariant } from '../data/phases';
+
+interface Props {
+  mac?: TerminalVariant;
+  win?: TerminalVariant;
+}
+const { mac, win } = Astro.props;
+---
+
+{mac && (
+  <div class="terminal mac-only">
+    <div class="terminal-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <span class="terminal-title">{mac.title}</span>
+    </div>
+    <div class="terminal-body">
+      {mac.lines.map(line => (
+        <div>
+          {line.type === 'comment' && <span class="t-comment">{line.text}</span>}
+          {line.type === 'cmd' && <span class="t-prompt">{line.prompt}</span>}
+          {line.type === 'cmd' && <span class="t-cmd">{line.text}</span>}
+          {line.type === 'out' && <span class="t-out">{line.text}</span>}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+{win && (
+  <div class="terminal win-only">
+    <div class="terminal-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <span class="terminal-title">{win.title}</span>
+    </div>
+    <div class="terminal-body">
+      {win.lines.map(line => (
+        <div>
+          {line.type === 'comment' && <span class="t-comment">{line.text}</span>}
+          {line.type === 'cmd' && <span class="t-prompt">{line.prompt}</span>}
+          {line.type === 'cmd' && <span class="t-cmd">{line.text}</span>}
+          {line.type === 'out' && <span class="t-out">{line.text}</span>}
+        </div>
+      ))}
+    </div>
+  </div>
+)}

@@ -1,0 +1,27 @@
+---
+import type { ContentBlock } from '../data/phases';
+import Alert from './Alert.astro';
+import MermaidDiagram from './MermaidDiagram.astro';
+import AsciiDiagram from './AsciiDiagram.astro';
+import Terminal from './Terminal.astro';
+import OSCodeBlock from './OSCodeBlock.astro';
+import Checklist from './Checklist.astro';
+
+interface Props {
+  blocks: ContentBlock[];
+}
+const { blocks } = Astro.props;
+---
+
+{blocks.map(b => (
+  <>
+    {b.type === 'alert'        && <Alert variant={b.variant} html={b.html} os={b.os} />}
+    {b.type === 'mermaid'      && <MermaidDiagram diagram={b.diagram} />}
+    {b.type === 'ascii'        && <AsciiDiagram text={b.text} />}
+    {b.type === 'sectionTitle' && <h3 class="sub-title">{b.text}</h3>}
+    {b.type === 'terminal'     && <Terminal mac={b.mac} win={b.win} />}
+    {b.type === 'code'         && <OSCodeBlock mac={b.mac} win={b.win} common={b.common} />}
+    {b.type === 'checks'       && <Checklist items={b.items} />}
+    {b.type === 'html'         && <div set:html={b.content} />}
+  </>
+))}

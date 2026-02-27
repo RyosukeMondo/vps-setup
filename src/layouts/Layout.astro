@@ -1,0 +1,770 @@
+---
+interface Props {
+  title?: string;
+}
+const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <script is:inline src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style is:global>
+    /* ─── CSS RESET & BASE ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d1117;
+      --bg2:      #161b22;
+      --bg3:      #21262d;
+      --border:   #30363d;
+      --green:    #39d353;
+      --green2:   #26a641;
+      --cyan:     #58a6ff;
+      --yellow:   #e3b341;
+      --red:      #f85149;
+      --purple:   #bc8cff;
+      --text:     #e6edf3;
+      --muted:    #8b949e;
+      --font:     'Courier New', Courier, monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ─── SCROLLBAR ─────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ─── LAYOUT ────────────────────────────────────────────────────── */
+    .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+    /* ─── SCANLINE EFFECT ───────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,.08) 2px,
+        rgba(0,0,0,.08) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ─── HEADER / HERO ─────────────────────────────────────────────── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 48px 0 32px;
+      text-align: center;
+    }
+
+    .ascii-hero {
+      color: var(--green);
+      font-size: 11px;
+      line-height: 1.2;
+      white-space: pre;
+      display: inline-block;
+      text-shadow: 0 0 12px rgba(57,211,83,.5);
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { text-shadow: 0 0 12px rgba(57,211,83,.5); }
+      50%       { text-shadow: 0 0 24px rgba(57,211,83,.9); }
+    }
+
+    .hero-subtitle {
+      color: var(--muted);
+      margin-top: 16px;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .hero-subtitle span { color: var(--cyan); }
+
+    /* ─── PROGRESS BAR ──────────────────────────────────────────────── */
+    .progress-wrap {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px 24px;
+      margin: 24px 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .progress-label { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .progress-label span { color: var(--green); }
+
+    .progress-track {
+      flex: 1;
+      height: 8px;
+      background: var(--bg3);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green2), var(--green));
+      border-radius: 4px;
+      transition: width .6s ease;
+      box-shadow: 0 0 8px rgba(57,211,83,.4);
+    }
+
+    /* ─── NAV TABS ──────────────────────────────────────────────────── */
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 20px 0 0;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      padding: 8px 20px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-bottom: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 13px;
+      border-radius: 6px 6px 0 0;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+
+    .nav-tab:hover { color: var(--text); border-color: var(--border); }
+    .nav-tab.active {
+      color: var(--green);
+      border-color: var(--border);
+      background: var(--bg2);
+      border-bottom-color: var(--bg2);
+    }
+
+    /* ─── SECTIONS ──────────────────────────────────────────────────── */
+    .section { padding: 32px 0; display: none; }
+    .section.active { display: block; }
+
+    .section-title {
+      font-size: 18px;
+      color: var(--cyan);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title::before {
+      content: '>';
+      color: var(--green);
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+
+    .sub-title {
+      color: var(--purple);
+      margin: 24px 0 12px;
+      font-size: 14px;
+    }
+
+    /* ─── CARD ──────────────────────────────────────────────────────── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .card-title {
+      color: var(--yellow);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .phase-badge {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--purple);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .phase-badge.warn {
+      border-color: var(--yellow);
+      color: var(--yellow);
+    }
+
+    .chevron {
+      color: var(--muted);
+      transition: transform .3s;
+      font-size: 12px;
+    }
+
+    .card.collapsed .chevron { transform: rotate(-90deg); }
+    .card.collapsed .card-body { display: none; }
+
+    .card-body { margin-top: 16px; }
+
+    /* ─── CHECKLIST ─────────────────────────────────────────────────── */
+    .checklist { list-style: none; }
+
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(48,54,61,.5);
+      cursor: pointer;
+      transition: color .2s;
+    }
+
+    .checklist li:last-child { border-bottom: none; }
+    .checklist li:hover { color: var(--cyan); }
+
+    .checklist li.done { color: var(--muted); text-decoration: line-through; }
+
+    .check-box {
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      flex-shrink: 0;
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      transition: all .2s;
+    }
+
+    .checklist li.done .check-box {
+      background: var(--green2);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    /* ─── CODE BLOCK ────────────────────────────────────────────────── */
+    .code-wrap {
+      position: relative;
+      margin: 12px 0;
+    }
+
+    pre {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    pre code { color: var(--green); }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 11px;
+      transition: all .2s;
+    }
+
+    .copy-btn:hover { color: var(--green); border-color: var(--green); }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+    /* ─── MERMAID CONTAINER ─────────────────────────────────────────── */
+    .mermaid-wrap {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .mermaid-wrap .mermaid { display: inline-block; }
+
+    /* ─── ASCII ART DIAGRAM ─────────────────────────────────────────── */
+    .ascii-diagram {
+      background: var(--bg);
+      border: 1px solid var(--green);
+      border-radius: 6px;
+      padding: 20px;
+      margin: 16px 0;
+      overflow-x: auto;
+      color: var(--green);
+      font-size: 12px;
+      line-height: 1.4;
+      white-space: pre;
+      box-shadow: 0 0 16px rgba(57,211,83,.1) inset;
+    }
+
+    /* ─── ALERT BOX ─────────────────────────────────────────────────── */
+    .alert {
+      border-left: 3px solid;
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      margin: 12px 0;
+      font-size: 13px;
+    }
+
+    .alert-warn  { border-color: var(--yellow); background: rgba(227,179,65,.08); color: var(--yellow); }
+    .alert-info  { border-color: var(--cyan);   background: rgba(88,166,255,.08); color: var(--cyan);   }
+    .alert-danger{ border-color: var(--red);    background: rgba(248,81,73,.08);  color: var(--red);    }
+
+    /* ─── RISK MATRIX ───────────────────────────────────────────────── */
+    .risk-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .risk-table th, .risk-table td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    .risk-table th { background: var(--bg3); color: var(--cyan); }
+    .risk-table tr:hover td { background: rgba(255,255,255,.02); }
+
+    .risk-high   { color: var(--red); }
+    .risk-med    { color: var(--yellow); }
+    .risk-low    { color: var(--green); }
+    .risk-unk    { color: var(--muted); }
+
+    /* ─── TERMINAL WINDOW ───────────────────────────────────────────── */
+    .terminal {
+      background: #0a0c10;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+
+    .terminal-bar {
+      background: var(--bg3);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+
+    .terminal-title { margin-left: 8px; color: var(--muted); font-size: 11px; }
+
+    .terminal-body {
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .t-prompt { color: var(--green); }
+    .t-cmd    { color: var(--text); }
+    .t-out    { color: var(--muted); }
+    .t-comment{ color: #555; }
+
+    /* ─── TOOLTIP ───────────────────────────────────────────────────── */
+    [data-tip] {
+      position: relative;
+      cursor: help;
+      border-bottom: 1px dashed var(--muted);
+    }
+
+    [data-tip]::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s;
+      z-index: 100;
+    }
+
+    [data-tip]:hover::after { opacity: 1; }
+
+    /* ─── FOOTER ────────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    footer a { color: var(--cyan); text-decoration: none; }
+
+    /* ─── OS SWITCHER ───────────────────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 16px 0 0;
+      flex-wrap: wrap;
+    }
+
+    .os-toggle {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px;
+    }
+
+    .os-btn {
+      padding: 5px 16px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 12px;
+      border-radius: 4px;
+      transition: all .2s;
+    }
+
+    .os-btn:hover { color: var(--text); }
+
+    .os-btn.active {
+      background: var(--bg2);
+      border-color: var(--border);
+      color: var(--green);
+    }
+
+    .os-label {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    /* visibility rules driven by body class */
+    body.os-win .mac-only { display: none !important; }
+    body.os-mac .win-only { display: none !important; }
+
+    /* ─── RESET BUTTON ──────────────────────────────────────────────── */
+    .reset-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 5px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 12px;
+      transition: all .2s;
+      letter-spacing: 1px;
+    }
+
+    .reset-btn:hover { border-color: var(--red); color: var(--red); }
+
+    .reset-btn.confirm {
+      border-color: var(--red);
+      color: var(--red);
+      animation: shake .3s ease;
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-4px); }
+      75%      { transform: translateX(4px); }
+    }
+
+    /* ─── RESPONSIVE ────────────────────────────────────────────────── */
+    @media(max-width:600px) {
+      .ascii-hero { font-size: 8px; }
+      pre { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── HEADER ──────────────────────────────────────────────────────────── -->
+<header>
+  <div class="container">
+    <pre class="ascii-hero">
+ __   __ ____  ____     ____  _____ ______ _    _ ____
+ \ \ / /|  _ \/ ___|   / ___|| ____|_  __|| |  | |  _ \
+  \ V / | |_) \___ \   \___ \|  _|   | |  | |  | | |_) |
+   | |  |  __/ ___) |   ___) | |___  | |  | |__| |  __/
+   |_|  |_|   |____/   |____/|_____| |_|   \____/|_|
+
+   ─── AI-DRIVEN VPS INFRASTRUCTURE AUTOMATION GUIDE ───
+    </pre>
+    <p class="hero-subtitle">
+      Phase-by-phase guide ·
+      <span>Claude Code</span> ·
+      XServer VPS ·
+      Caddy Reverse Proxy
+    </p>
+
+    <div class="toolbar">
+      <span class="os-label">OS:</span>
+      <div class="os-toggle">
+        <button class="os-btn active" id="btnMac" onclick="setOS('mac')">🍎 Mac</button>
+        <button class="os-btn"        id="btnWin" onclick="setOS('win')">🪟 Windows</button>
+      </div>
+      <button class="reset-btn" id="resetBtn" onclick="resetAll()">[ RESET PROGRESS ]</button>
+    </div>
+
+    <div class="progress-wrap" id="globalProgress">
+      <span class="progress-label">MISSION PROGRESS&nbsp;<span id="pct">0%</span></span>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <span class="progress-label"><span id="doneCount">0</span>/<span id="totalCount">0</span> tasks</span>
+    </div>
+  </div>
+</header>
+
+<slot />
+
+<!-- ─── FOOTER ───────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <p>VPS Setup Guide · AI-Driven Infrastructure ·
+      Built for <a href="https://pages.github.com">GitHub Pages</a>
+    </p>
+    <p style="margin-top:8px; font-size:11px;">
+      Powered by
+      <a href="https://mermaid.js.org">Mermaid.js</a> ·
+      Terminal dark theme ·
+      Astro static site
+    </p>
+  </div>
+</footer>
+
+<!-- ─── SCRIPTS ──────────────────────────────────────────────────────────── -->
+<script is:inline>
+  /* ── Mermaid init ─────────────────────────────────────────── */
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      darkMode: true,
+      background:     '#161b22',
+      primaryColor:   '#1a2d3a',
+      primaryBorderColor: '#58a6ff',
+      primaryTextColor:   '#e6edf3',
+      secondaryColor: '#1a2d1a',
+      tertiaryColor:  '#21262d',
+      lineColor:      '#8b949e',
+      textColor:      '#e6edf3',
+      edgeLabelBackground: '#21262d',
+      clusterBkg:     '#161b22',
+      clusterBorder:  '#30363d',
+    },
+    flowchart: { curve: 'basis', htmlLabels: true },
+    sequence: {
+      actorFontFamily: 'Courier New',
+      messageFontFamily: 'Courier New',
+      noteFontFamily: 'Courier New',
+    }
+  });
+
+  /* ── Tab navigation ───────────────────────────────────────── */
+  const tabs = document.querySelectorAll('.nav-tab');
+  const sections = document.querySelectorAll('.section');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.target;
+      tabs.forEach(t => t.classList.remove('active'));
+      sections.forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(target).classList.add('active');
+    });
+  });
+
+  /* ── Card toggle (event delegation) ──────────────────────── */
+  document.addEventListener('click', function(e) {
+    // Copy button — highest priority
+    if (e.target.matches('.copy-btn')) {
+      const code = e.target.nextElementSibling.querySelector('code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        e.target.textContent = 'COPIED!';
+        e.target.classList.add('copied');
+        setTimeout(() => {
+          e.target.textContent = 'COPY';
+          e.target.classList.remove('copied');
+        }, 1800);
+      });
+      return;
+    }
+
+    // Card header toggle
+    const cardHeader = e.target.closest('.card-header');
+    if (cardHeader) {
+      cardHeader.closest('.card').classList.toggle('collapsed');
+      return;
+    }
+
+    // Checklist item toggle
+    const li = e.target.closest('li[data-id]');
+    if (li) toggleCheck(li);
+  });
+
+  /* ── OS switcher ───────────────────────────────────────────── */
+  const OS_KEY = 'vps-setup-os';
+  let currentOS = 'mac';
+
+  function setOS(os) {
+    currentOS = os;
+    localStorage.setItem(OS_KEY, os);
+    document.body.classList.toggle('os-win', os === 'win');
+    document.body.classList.toggle('os-mac', os === 'mac');
+    document.getElementById('btnMac').classList.toggle('active', os === 'mac');
+    document.getElementById('btnWin').classList.toggle('active', os === 'win');
+    updateProgress();
+  }
+
+  function loadOS() {
+    const saved = localStorage.getItem(OS_KEY) || 'mac';
+    setOS(saved);
+  }
+
+  /* ── Checklist + progress ─────────────────────────────────── */
+  const STATE_KEY = 'vps-setup-checklist';
+  let state = {};
+
+  function loadState() {
+    try { state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}'); }
+    catch(e) { state = {}; }
+  }
+
+  function saveState() {
+    localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  }
+
+  function isVisibleItem(li) {
+    if (li.classList.contains('mac-only') && currentOS === 'win') return false;
+    if (li.classList.contains('win-only') && currentOS === 'mac') return false;
+    return true;
+  }
+
+  function toggleCheck(li) {
+    const id = li.dataset.id;
+    state[id] = !state[id];
+    saveState();
+    applyState(li, state[id]);
+    updateProgress();
+  }
+
+  function applyState(li, done) {
+    const box = li.querySelector('.check-box');
+    if (done) {
+      li.classList.add('done');
+      box.textContent = '✓';
+    } else {
+      li.classList.remove('done');
+      box.textContent = '';
+    }
+  }
+
+  function updateProgress() {
+    const all   = Array.from(document.querySelectorAll('[data-id]')).filter(isVisibleItem);
+    const done  = all.filter(li => state[li.dataset.id]).length;
+    const total = all.length;
+    const pct   = total ? Math.round(done / total * 100) : 0;
+
+    document.getElementById('pct').textContent          = pct + '%';
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('doneCount').textContent    = done;
+    document.getElementById('totalCount').textContent   = total;
+  }
+
+  function restoreChecklist() {
+    document.querySelectorAll('[data-id]').forEach(li => {
+      if (state[li.dataset.id]) applyState(li, true);
+    });
+    updateProgress();
+  }
+
+  /* ── Reset all ────────────────────────────────────────────── */
+  let resetPending = false;
+
+  function resetAll() {
+    const btn = document.getElementById('resetBtn');
+    if (!resetPending) {
+      resetPending = true;
+      btn.textContent = '[ CONFIRM RESET? ]';
+      btn.classList.add('confirm');
+      setTimeout(() => {
+        resetPending = false;
+        btn.textContent = '[ RESET PROGRESS ]';
+        btn.classList.remove('confirm');
+      }, 2500);
+      return;
+    }
+    resetPending = false;
+    state = {};
+    saveState();
+    document.querySelectorAll('[data-id]').forEach(li => applyState(li, false));
+    updateProgress();
+    btn.textContent = '[ RESET PROGRESS ]';
+    btn.classList.remove('confirm');
+  }
+
+  /* ── Init ─────────────────────────────────────────────────── */
+  loadOS();
+  loadState();
+  restoreChecklist();
+</script>
+
+</body>
+</html>
