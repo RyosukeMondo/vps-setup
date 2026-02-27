@@ -829,19 +829,17 @@ const risks: Section = {
     title Manual vs AI-Delegated Setup Time
     dateFormat HH:mm
     axisFormat %H:%M
-
-    section Manual Approach
+    section Manual Approach (315 min)
     Research and docs    :t1, 00:00, 60m
-    Tool installation    :t2, after t1, 45m
-    SSH key setup        :t3, after t2, 30m
-    VPS contract         :t4, after t3, 30m
-    Docker install       :t5, after t4, 60m
-    Caddy TLS setup      :t6, after t5, 90m
-
-    section AI-Delegated
+    Tool installation    :t2, 01:00, 45m
+    SSH key setup        :t3, 01:45, 30m
+    VPS contract         :t4, 02:15, 30m
+    Docker install       :t5, 02:45, 60m
+    Caddy TLS setup      :t6, 03:45, 90m
+    section AI-Delegated (50 min)
     Phase 1-2 local      :a1, 00:00, 20m
-    Phase 3 VPS          :a2, after a1, 15m
-    Phase 4 Claude       :a3, after a2, 15m`,
+    Phase 3 VPS          :a2, 00:20, 15m
+    Phase 4 Claude       :a3, 00:35, 15m`,
     },
     {
       type: 'ascii',
