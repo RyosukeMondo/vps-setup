@@ -326,7 +326,7 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
     }
 
     .mermaid-wrap:active { cursor: grabbing; }
-    .mermaid-wrap .mermaid { display: inline-block; }
+    .mermaid-wrap .mermaid { display: block; }
     .mermaid-wrap svg { max-width: none !important; }
 
     /* ─── PAN/ZOOM CONTROLS ─────────────────────────────────────────── */
@@ -645,7 +645,7 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
 
 <!-- ─── SCRIPTS ──────────────────────────────────────────────────────────── -->
 <script is:inline>
-  /* ── Mermaid init + pan/zoom ──────────────────────────────── */
+  /* ── Mermaid init ──────────────────────────────────────────── */
   mermaid.initialize({
     startOnLoad: false,
     theme: 'dark',
@@ -672,6 +672,9 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
     }
   });
 
+  /* ── Pan/zoom fit functions registry ──────────────────────── */
+  const pzFitFns = new Map();
+
   document.addEventListener('DOMContentLoaded', async () => {
     await mermaid.run({ querySelector: '.mermaid' });
     document.querySelectorAll('.mermaid-wrap').forEach(initPanZoom);
@@ -690,16 +693,55 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
       svg.style.transformOrigin = '0 0';
     };
 
+    /* derive natural SVG geometry from current transform state — no flash */
+    const natural = () => {
+      const svgR  = svg.getBoundingClientRect();
+      const wrapR = wrap.getBoundingClientRect();
+      if (svgR.width > 0) {
+        return {
+          svgW: svgR.width  / scale,
+          svgH: svgR.height / scale,
+          nx:   (svgR.left - wrapR.left) - panX,
+          ny:   (svgR.top  - wrapR.top)  - panY,
+          ww:   wrapR.width,
+          wh:   wrapR.height,
+        };
+      }
+      /* hidden section fallback — use viewBox */
+      const vb = svg.viewBox?.baseVal;
+      return {
+        svgW: vb?.width  || 400,
+        svgH: vb?.height || 300,
+        nx: 24, ny: 24,
+        ww: wrap.offsetWidth  || 880,
+        wh: wrap.offsetHeight || 460,
+      };
+    };
+
+    /* scale + center SVG to fill container */
+    const fitToContainer = () => {
+      const { svgW, svgH, nx, ny, ww, wh } = natural();
+      if (!svgW || !ww) return;
+      scale = clamp(Math.min(ww / svgW, wh / svgH) * 0.88, 0.1, 6);
+      panX  = ww / 2 - nx - svgW * scale / 2;
+      panY  = wh / 2 - ny - svgH * scale / 2;
+      apply();
+    };
+
+    pzFitFns.set(wrap, fitToContainer);
+    fitToContainer();
+
     /* wheel → zoom toward cursor */
     wrap.addEventListener('wheel', e => {
       e.preventDefault();
-      const r   = wrap.getBoundingClientRect();
-      const mx  = e.clientX - r.left - 24; /* subtract padding */
-      const my  = e.clientY - r.top  - 24;
+      const r    = wrap.getBoundingClientRect();
+      const mx   = e.clientX - r.left;
+      const my   = e.clientY - r.top;
+      const { nx, ny } = natural();
       const prev = scale;
-      scale = clamp(scale * (e.deltaY < 0 ? 1.12 : 0.9), 0.2, 6);
-      panX  = mx - (mx - panX) * (scale / prev);
-      panY  = my - (my - panY) * (scale / prev);
+      scale = clamp(scale * (e.deltaY < 0 ? 1.12 : 0.9), 0.1, 6);
+      panX  = mx - nx - (mx - nx - panX) * (scale / prev);
+      panY  = my - ny - (my - ny - panY) * (scale / prev);
       apply();
     }, { passive: false });
 
@@ -724,10 +766,8 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
       wrap.style.cursor = 'grab';
     });
 
-    /* double-click → reset */
-    wrap.addEventListener('dblclick', () => {
-      scale = 1; panX = 0; panY = 0; apply();
-    });
+    /* double-click → fit to container */
+    wrap.addEventListener('dblclick', () => { fitToContainer(); });
 
     /* touch: pinch zoom + single-finger pan */
     let lastTouches = [], lastDist = 0;
@@ -747,7 +787,7 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
         const d = Math.hypot(
           e.touches[0].clientX - e.touches[1].clientX,
           e.touches[0].clientY - e.touches[1].clientY);
-        scale = clamp(scale * (d / lastDist), 0.2, 6);
+        scale = clamp(scale * (d / lastDist), 0.1, 6);
         lastDist = d;
       }
       lastTouches = [...e.touches];
@@ -761,20 +801,19 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
     ctrl.innerHTML =
       '<button class="pz-btn" data-a="in"    title="Zoom in">+</button>' +
       '<button class="pz-btn" data-a="out"   title="Zoom out">−</button>' +
-      '<button class="pz-btn" data-a="reset" title="Reset">⊙</button>';
+      '<button class="pz-btn" data-a="reset" title="Fit to view">⊙</button>';
     ctrl.addEventListener('click', e => {
       const a = e.target.closest('[data-a]')?.dataset.a;
-      if (a === 'in')    scale = clamp(scale * 1.25, 0.2, 6);
-      if (a === 'out')   scale = clamp(scale * 0.8,  0.2, 6);
-      if (a === 'reset') { scale = 1; panX = 0; panY = 0; }
-      apply();
+      if (a === 'in')    { scale = clamp(scale * 1.25, 0.1, 6); apply(); }
+      if (a === 'out')   { scale = clamp(scale * 0.8,  0.1, 6); apply(); }
+      if (a === 'reset') { fitToContainer(); }
     });
     wrap.appendChild(ctrl);
 
     /* hint */
     const hint = document.createElement('div');
     hint.className = 'pz-hint';
-    hint.textContent = 'scroll to zoom · drag to pan · dbl-click to reset';
+    hint.textContent = 'scroll to zoom · drag to pan · dbl-click to fit';
     wrap.appendChild(hint);
   }
 
@@ -788,7 +827,13 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
       tabs.forEach(t => t.classList.remove('active'));
       sections.forEach(s => s.classList.remove('active'));
       tab.classList.add('active');
-      document.getElementById(target).classList.add('active');
+      const section = document.getElementById(target);
+      section.classList.add('active');
+      /* re-fit diagrams that were hidden during initial render */
+      section.querySelectorAll('.mermaid-wrap').forEach(w => {
+        const fitFn = pzFitFns.get(w);
+        if (fitFn) fitFn();
+      });
     });
   });
 

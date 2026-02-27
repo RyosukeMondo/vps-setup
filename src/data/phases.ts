@@ -105,23 +105,24 @@ const overview: Section = {
 
     subgraph P2["PHASE 2 · Claude Code Reference"]
         direction TB
-        P2A[Verify alias active] --> P2B[Verify skills dir + gh auth]
+        P2A["👤 Verify alias active"] --> P2B["👤 Verify skills dir + gh auth"]
     end
 
     subgraph P3["PHASE 3 · Infrastructure"]
         direction TB
-        P3A[Contract XServer VPS · Ubuntu 24.04] --> P3B[Download xvps.pem SSH key]
-        P3B --> P3C[Place key · chmod 600]
-        P3C --> P3D[Create server.md with VPS info]
+        P3A["👤 Contract XServer VPS · Ubuntu 24.04"] --> P3B["👤 Download xvps.pem SSH key"]
+        P3B --> P3C["👤 Place key · chmod 600"]
+        P3C --> P3D["👤 Create server.md with VPS info"]
     end
 
     subgraph P4["PHASE 4 · AI Provisioning"]
         direction TB
-        P4A[Run: claude] --> P4B[Prompt: read server.md]
-        P4B --> P4C[Create sudo user + authorized_keys]
-        P4C --> P4D[Install Docker + Docker Compose]
-        P4D --> P4E[Deploy Caddy + Nginx via Docker]
-        P4E --> P4F([✅ HTTPS site LIVE])
+        P4A["👤 Run: claude"] --> P4B["🤖 Read server.md"]
+        P4B --> P4C["🤖 Create deploy user + keys"]
+        P4C --> P4D["🤖 Disable root SSH 🔒"]
+        P4D --> P4E["🤖 Install Docker + Compose"]
+        P4E --> P4F["🤖 Deploy Caddy + Nginx"]
+        P4F --> P4G(["✅ HTTPS site LIVE"])
     end
 
     P1 --> P2
@@ -133,7 +134,7 @@ const overview: Section = {
     style P3 fill:#1a2332,stroke:#e3b341,color:#e6edf3
     style P4 fill:#1a2332,stroke:#39d353,color:#e6edf3
     style A fill:#21262d,stroke:#39d353,color:#39d353
-    style P4F fill:#21262d,stroke:#39d353,color:#39d353`,
+    style P4G fill:#21262d,stroke:#39d353,color:#39d353`,
     },
     { type: 'sectionTitle', text: '◆ Dependency Graph · What blocks what?' },
     {
@@ -327,20 +328,32 @@ npm install -g @anthropic-ai/claude-code`,
           diagram: `sequenceDiagram
     actor You
     participant CC as Claude Code
+    participant Shell as Shell
     participant gh as gh CLI
     participant GitHub
 
-    CC->>CC: Install brew, git, gh, docker, mise
-    CC->>CC: Configure mise Python versions
-    CC->>CC: Add alias to ~/.zshrc
-    CC->>CC: Create ~/.claude/skills/vps-caddy-proxy.md
+    You->>CC: Paste master prompt
+    CC->>Shell: Detect OS (macOS / Linux / WSL2)
+    CC-->>You: 📋 Show command plan — confirm?
+    You->>CC: ✅ Proceed
+
+    Note over CC,Shell: 🤖 Claude Code executes autonomously
+    CC->>Shell: Install Homebrew / apt packages
+    CC->>Shell: brew/apt install git gh docker mise
+    CC->>Shell: mise use --global python@3.9..3.13
+    CC->>Shell: Add alias to ~/.zshrc · source it
+    CC->>Shell: mkdir ~/.claude/skills/ + write vps-caddy-proxy.md
+
     CC->>gh: gh auth login --git-protocol ssh
-    gh->>You: 🔑 Open browser → enter code: XXXX-YYYY
-    You->>GitHub: Paste code + approve
-    GitHub-->>gh: ✅ Authenticated
-    gh-->>CC: SSH key registered
-    CC->>CC: Verify all tools ✅
-    CC-->>You: Phase 1 complete`,
+    gh-->>You: 🔑 Open github.com/login/device · enter: XXXX-YYYY
+    You->>GitHub: Enter code + approve OAuth
+    GitHub-->>gh: SSH key registered · token saved
+    gh-->>CC: ✅ Authenticated
+
+    CC->>Shell: Verify: git/gh/docker/mise/node versions
+    CC->>Shell: gh auth status · mise list python
+    Shell-->>CC: All checks pass ✅
+    CC-->>You: Phase 1 complete · proceed to Phase 3`,
         },
         {
           type: 'checks',
@@ -462,6 +475,7 @@ const phase3: Section = {
       id: 'card-p3-1',
       titleHtml: 'Contract XServer VPS',
       badgeLabel: 'STEP 1',
+      badgeVariant: 'human',
       blocks: [
         {
           type: 'checks',
@@ -477,6 +491,7 @@ const phase3: Section = {
       id: 'card-p3-2',
       titleHtml: 'Configure Local SSH Access',
       badgeLabel: 'STEP 2',
+      badgeVariant: 'human',
       blocks: [
         {
           type: 'checks',
@@ -505,6 +520,7 @@ ssh -i ~/.ssh/xvps.pem root@<YOUR_VPS_IP>`,
       id: 'card-p3-3',
       titleHtml: 'Create <code>server.md</code> — Declarative Config File',
       badgeLabel: 'STEP 3',
+      badgeVariant: 'human',
       blocks: [
         {
           type: 'alert',
@@ -591,14 +607,20 @@ const phase4: Section = {
   title: 'Phase 4 · AI-Driven Remote Provisioning',
   headerAlert: {
     variant: 'info',
-    html: '🤖 This phase is <strong>delegated to Claude Code</strong>. You provide the prompt; Claude executes all remote commands.',
+    html: '🤖 This phase is <strong>delegated to Claude Code</strong>. You launch it once; Claude handles all remote commands including security hardening.',
   },
   steps: [
     {
       id: 'card-p4-1',
       titleHtml: 'Launch Claude Code',
-      badgeLabel: 'STEP 1',
+      badgeLabel: 'HUMAN',
+      badgeVariant: 'human',
       blocks: [
+        {
+          type: 'alert',
+          variant: 'info',
+          html: '👤 <strong>Your only action in this phase:</strong> navigate to your project directory (where <code>server.md</code> lives) and run <code>claude</code>. Then paste the master prompt in Step 2.',
+        },
         {
           type: 'code',
           common: 'cd /path/to/your/project  # where server.md lives\nclaude',
@@ -608,21 +630,38 @@ const phase4: Section = {
     {
       id: 'card-p4-2',
       titleHtml: 'The Master Prompt',
-      badgeLabel: 'STEP 2',
+      badgeLabel: 'CLAUDE CODE',
+      badgeVariant: 'claude',
       blocks: [
+        {
+          type: 'alert',
+          variant: 'warn',
+          html: '🔐 <strong>Security-first approach:</strong> Claude connects as <code>root</code> <em>once</em> to bootstrap the <code>deploy</code> user, then immediately disables root SSH. All Docker work runs as <code>deploy</code>.',
+        },
         {
           type: 'code',
           common: `server.md を読み込み、記載されたVPSへSSH接続してください。
 接続後、以下のタスクを順に実行してください。
 実行前に実行予定のコマンド一覧を出力し、確認を求めてください。
 
-1. 新規の一般ユーザーを作成し、sudo権限を付与し、
-   ローカルの ~/.ssh/id_ed25519.pub を新しいユーザーの
-   authorized_keys に追加してパスワードなしでSSH接続できるようにしてください。
+1. rootユーザーとしてSSH接続してください（初回・最後のroot接続です）。
 
-2. Ubuntu 24.04上にDockerおよびDocker Composeをインストールしてください。
+2. 新規の一般ユーザー（deploy）を作成し、sudo権限を付与してください。
+   ローカルの ~/.ssh/id_ed25519.pub を
+   /home/deploy/.ssh/authorized_keys に追加し、
+   パスワードなしでSSH接続できるようにしてください。
 
-3. ~/.claude/skills/vps-caddy-proxy.md を読み込み、VPS上にCaddyを用いた
+3. deployユーザーでのSSH接続を確認してから、
+   rootのSSHログインを無効化してください:
+   - /etc/ssh/sshd_config: PermitRootLogin を no に変更
+   - sudo systemctl restart sshd
+   ※ deploy接続確認前に実行しないでください。
+
+4. deployユーザーでSSH接続し、残りの作業を続けてください。
+
+5. Ubuntu 24.04上にDockerおよびDocker Composeをインストールしてください。
+
+6. ~/.claude/skills/vps-caddy-proxy.md を読み込み、VPS上にCaddyを用いた
    リバースプロキシ環境と、サンプルのWebページ（Nginx）のDockerコンテナを
    構築し、起動してください。サブドメインは server.md のものを適用してください。`,
         },
@@ -632,15 +671,21 @@ const phase4: Section = {
     actor You
     participant CC as Claude Code
     participant VPS as XServer VPS
-    participant GH as GitHub
 
     You->>CC: Paste master prompt
-    CC->>CC: Read server.md
-    CC->>CC: Read ~/.ssh/xvps.pem
-    CC->>VPS: SSH connect as root
-    CC->>VPS: useradd deploy + sudoers
-    CC->>GH: Fetch ~/.ssh/id_ed25519.pub
-    CC->>VPS: Append to deploy/.ssh/authorized_keys
+    CC->>CC: Read server.md + ~/.ssh/xvps.pem
+    CC->>VPS: SSH connect as root (first & last time)
+
+    Note over CC,VPS: 🔐 Security bootstrap
+    CC->>VPS: useradd deploy + sudo group
+    CC->>VPS: mkdir /home/deploy/.ssh
+    CC->>VPS: Append ~/.ssh/id_ed25519.pub → authorized_keys
+    CC->>VPS: Verify: ssh as deploy ✅
+    CC->>VPS: Set PermitRootLogin no
+    CC->>VPS: systemctl restart sshd
+    Note over VPS: Root SSH disabled 🔒
+
+    CC->>VPS: SSH reconnect as deploy
     CC->>VPS: apt install docker.io docker-compose
     CC->>CC: Read ~/.claude/skills/vps-caddy-proxy.md
     CC->>VPS: Write docker-compose.yml + Caddyfile
@@ -653,8 +698,10 @@ const phase4: Section = {
           items: [
             { id: 'p4-2-a', label: '<code>deploy</code> user created with sudo rights' },
             { id: 'p4-2-b', label: 'SSH login works as <code>deploy</code> (no password)' },
-            { id: 'p4-2-c', label: '<code>docker ps</code> shows caddy + nginx containers running' },
-            { id: 'p4-2-d', label: '<code>https://domain.xvps.jp</code> loads with valid TLS cert' },
+            { id: 'p4-2-c', label: 'Root SSH disabled — <code>ssh root@VPS_IP</code> rejected' },
+            { id: 'p4-2-d', label: '<code>docker ps</code> shows caddy + nginx containers running' },
+            { id: 'p4-2-e', label: '<code>https://domain.xvps.jp</code> loads with valid TLS cert' },
+            { id: 'p4-2-f', label: '<code>server.md</code> updated: <code>User: deploy</code>' },
           ],
         },
       ],
