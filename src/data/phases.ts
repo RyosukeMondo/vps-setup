@@ -825,28 +825,19 @@ const risks: Section = {
     { type: 'sectionTitle', text: '◆ 機会費用 — 手動 vs AI委任' },
     {
       type: 'mermaid',
-      diagram: `gantt
-    title Manual Approach (315 min total)
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section Manual (315 min)
-    Research     :t1, 00:00, 60m
-    Tools        :t2, 01:00, 45m
-    SSH          :t3, 01:45, 30m
-    VPS          :t4, 02:15, 30m
-    Docker       :t5, 02:45, 60m
-    Caddy TLS    :t6, 03:45, 90m`,
+      diagram: `xychart-beta
+    title "手動アプローチ — タスク別所要時間 (分)"
+    x-axis ["調査・確認", "ツール設定", "SSH鍵", "VPS契約", "Docker", "Caddy TLS"]
+    y-axis "分" 0 --> 100
+    bar [60, 45, 30, 30, 60, 90]`,
     },
     {
       type: 'mermaid',
-      diagram: `gantt
-    title AI-Delegated (50 min total)
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section AI-Delegated (50 min)
-    Ph1 local    :a1, 00:00, 20m
-    Ph3 VPS      :a2, 00:20, 15m
-    Ph4 Claude   :a3, 00:35, 15m`,
+      diagram: `xychart-beta
+    title "合計時間比較 — 手動 315分 vs AI委任 50分 (6倍速)"
+    x-axis ["手動アプローチ", "AI委任"]
+    y-axis "分" 0 --> 320
+    bar [315, 50]`,
     },
     {
       type: 'ascii',
