@@ -32,7 +32,7 @@ export interface Step {
   id: string;
   titleHtml: string;
   badgeLabel?: string;
-  badgeVariant?: 'warn';
+  badgeVariant?: 'warn' | 'human' | 'claude';
   blocks: ContentBlock[];
 }
 
@@ -82,9 +82,9 @@ const overview: Section = {
 
     subgraph P1["PHASE 1 · Local Foundation"]
         direction TB
-        P1A[Install Homebrew / apt] --> P1B[Install git, gh, node, docker]
-        P1B --> P1C[Install mise · Python version mgr]
-        P1C --> P1D[gh auth login · GitHub SSH key]
+        P1A["👤 Install Node.js only"] --> P1B["👤 npm install -g @anthropic-ai/claude-code"]
+        P1B --> P1C["🤖 Claude Code: brew/apt · git · gh · docker · mise"]
+        P1C --> P1D["🤖 Claude Code: Python versions · alias · skills dir · gh auth"]
     end
 
     subgraph P2["PHASE 2 · Claude Code"]
@@ -163,164 +163,170 @@ const phase1: Section = {
   title: 'Phase 1 · Local Foundation &amp; Tooling',
   headerAlert: {
     variant: 'info',
-    html: 'ℹ️  All steps in this phase run on your <strong>local machine</strong> (Mac / Windows WSL2). Nothing touches the VPS yet.',
+    html: '⚡ <strong>Two steps only:</strong> a 5-min human bootstrap to get Node.js running, then Claude Code handles every remaining local tool automatically.',
   },
   steps: [
+    // ── Step 1: Human-only bootstrap ─────────────────────────────────────────
     {
       id: 'card-p1-1',
-      titleHtml: 'Package Manager',
-      badgeLabel: 'STEP 1',
-      blocks: [
-        {
-          type: 'checks',
-          items: [
-            {
-              id: 'p1-1-a',
-              os: 'mac',
-              label: 'Homebrew installed',
-              inlineCode: '/bin/bash -c "$(curl -fsSL https://brew.sh/install.sh)"',
-            },
-            {
-              id: 'p1-1-b',
-              os: 'win',
-              label: 'WSL2 enabled (Windows 10 2004+ / 11) — open PowerShell as Admin:',
-              inlineCode: 'wsl --install\n# Restart, then open Ubuntu from Start menu to complete setup',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'card-p1-2',
-      titleHtml: 'Install Core Tools',
-      badgeLabel: 'STEP 2',
-      blocks: [
-        {
-          type: 'checks',
-          items: [
-            { id: 'p1-2-a', label: 'git, gh, node, docker installed' },
-            { id: 'p1-2-b', label: 'Docker Desktop launched and running' },
-          ],
-        },
-        {
-          type: 'terminal',
-          mac: {
-            title: 'Terminal — macOS',
-            lines: [
-              { type: 'comment', text: '# Install all core tools in one shot' },
-              { type: 'cmd', prompt: '$ ', text: 'brew install git gh node docker' },
-              { type: 'out', text: '... installing ...' },
-              { type: 'cmd', prompt: '$ ', text: 'docker --version && node --version && gh --version' },
-              { type: 'out', text: 'Docker version 26.x.x, Node.js v22.x.x, gh version 2.x.x' },
-            ],
-          },
-          win: {
-            title: 'PowerShell (winget) — Windows',
-            lines: [
-              { type: 'comment', text: '# Install via winget (Windows Package Manager)' },
-              { type: 'cmd', prompt: 'PS> ', text: 'winget install Git.Git GitHub.cli OpenJS.NodeJS Docker.DockerDesktop' },
-              { type: 'out', text: '... installing ...' },
-              { type: 'comment', text: '# Restart terminal, then verify' },
-              { type: 'cmd', prompt: 'PS> ', text: 'docker --version; node --version; gh --version' },
-              { type: 'out', text: 'Docker version 26.x.x, Node.js v22.x.x, gh version 2.x.x' },
-            ],
-          },
-        },
-        {
-          type: 'code',
-          mac: 'brew install git gh node docker',
-          win: 'winget install Git.Git GitHub.cli OpenJS.NodeJS Docker.DockerDesktop',
-        },
-        {
-          type: 'alert',
-          variant: 'info',
-          os: 'win',
-          html: '💡 <strong>WSL2 users</strong>: Docker Desktop integrates with WSL2 automatically. Enable it via Docker Desktop → Settings → Resources → WSL Integration.',
-        },
-      ],
-    },
-    {
-      id: 'card-p1-3',
-      titleHtml: 'Python Version Management with <span data-tip="Multi-runtime version manager — replaces pyenv, nvm, rbenv">mise</span>',
-      badgeLabel: 'STEP 3',
+      titleHtml: 'Bootstrap — Node.js &amp; Claude Code',
+      badgeLabel: 'HUMAN',
+      badgeVariant: 'human',
       blocks: [
         {
           type: 'alert',
           variant: 'warn',
-          html: '⚠️  Installing multiple Python versions directly under the OS causes dependency hell. Use <strong>mise</strong> (or pyenv) to isolate them.',
+          html: '🔑 <strong>This is the only step requiring manual installation.</strong> Claude Code needs Node.js to run — that\'s it. Homebrew, git, docker, mise, Python versions, and GitHub auth are all delegated to Claude Code in Step 2.',
         },
         {
-          type: 'mermaid',
-          diagram: `graph TD
-    subgraph BAD ["❌ BAD — OS-level install"]
-        OS[macOS / Ubuntu] --> P39[python3.9 overwrites PATH]
-        OS --> P311[python3.11 overwrites PATH]
-        P39 -.conflicts.-> P311
-    end
-    subgraph GOOD ["✅ GOOD — mise isolated"]
-        M[mise] --> E1["project-A → python@3.9"]
-        M --> E2["project-B → python@3.11"]
-        M --> E3["project-C → python@3.13"]
-        E1 -.no conflict.- E2
-    end
+          type: 'code',
+          mac: `# Install Node.js via fnm (no Homebrew needed)
+curl -fsSL https://fnm.vercel.app/install | bash
+source ~/.zshrc   # or: source ~/.bashrc
 
-    style BAD fill:#2d1a1a,stroke:#f85149
-    style GOOD fill:#1a2d1a,stroke:#39d353`,
+fnm install 22
+fnm use 22
+node --version   # → v22.x.x
+
+# Install Claude Code
+npm install -g @anthropic-ai/claude-code
+claude --version`,
+          win: `# PowerShell — install Node.js via winget
+winget install OpenJS.NodeJS
+# Restart terminal, then:
+node --version   # → v22.x.x
+
+# Install Claude Code
+npm install -g @anthropic-ai/claude-code
+claude --version
+
+# --- OR inside WSL2 (recommended for this guide) ---
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash -
+sudo apt-get install -y nodejs
+npm install -g @anthropic-ai/claude-code`,
         },
         {
           type: 'checks',
           items: [
-            { id: 'p1-3-a', label: 'mise installed' },
-            { id: 'p1-3-b', label: 'Python 3.9–3.13 installed via mise' },
+            { id: 'p1-1-a', label: 'Node.js ≥ 18 installed (<code>node --version</code>)' },
+            { id: 'p1-1-b', label: '<code>claude --version</code> returns successfully' },
+            { id: 'p1-1-c', label: 'Anthropic API key entered — <code>claude</code> starts without error' },
           ],
-        },
-        {
-          type: 'code',
-          mac: 'brew install mise\nmise use --global python@3.9 python@3.10 python@3.11 python@3.12 python@3.13',
-          win: `# Option A — winget (PowerShell)
-winget install jdx.mise
-
-# Option B — inside WSL2 Ubuntu terminal
-curl https://mise.run | sh
-echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
-source ~/.bashrc
-
-mise use --global python@3.9 python@3.10 python@3.11 python@3.12 python@3.13`,
         },
       ],
     },
+
+    // ── Step 2: Claude Code automates everything else ─────────────────────────
     {
-      id: 'card-p1-4',
-      titleHtml: 'GitHub Authentication &amp; SSH Key',
-      badgeLabel: 'STEP 4',
+      id: 'card-p1-2',
+      titleHtml: 'Local Environment Setup',
+      badgeLabel: 'CLAUDE CODE',
+      badgeVariant: 'claude',
       blocks: [
+        {
+          type: 'alert',
+          variant: 'info',
+          html: '🤖 <strong>Claude Code takes over here.</strong> Run <code>claude</code> in your project directory, paste the master prompt below, and Claude will install and configure everything — including triggering <code>gh auth login</code> (you complete the browser step when prompted).',
+        },
+        {
+          type: 'mermaid',
+          diagram: `flowchart LR
+    H["👤 You\n(Step 1 done)"] --> CC
+
+    subgraph CC["🤖 Claude Code Automates"]
+        direction TB
+        A["Install Homebrew / apt"] --> B["brew install\ngit · gh · docker · mise"]
+        B --> C["mise use --global\nPython 3.9 → 3.13"]
+        C --> D["Add alias to\n~/.zshrc or ~/.bashrc"]
+        D --> E["Create ~/.claude/skills/\nvps-caddy-proxy.md"]
+        E --> F["gh auth login\n(browser — you approve)"]
+        F --> G["✅ Verify all tools"]
+    end
+
+    style H  fill:#1a2332,stroke:#58a6ff,color:#e6edf3
+    style CC fill:#1a2d1a,stroke:#39d353,color:#e6edf3`,
+        },
+        {
+          type: 'alert',
+          variant: 'danger',
+          html: '⚡ The prompt below uses <strong>--dangerously-skip-permissions</strong> mode (via alias). Claude will list all commands before executing — review them before confirming.',
+        },
+        {
+          type: 'code',
+          common: `ローカル開発環境のセットアップを自動化してください。
+実行前にコマンド一覧を出力し、確認を求めてください。
+
+1. OSを確認（macOS / Linux / WSL2）し、適切なコマンドを選択してください。
+
+2. パッケージマネージャーのセットアップ:
+   - macOS: Homebrewが未インストールなら自動インストール
+     /bin/bash -c "$(curl -fsSL https://brew.sh/install.sh)"
+   - Linux / WSL2: sudo apt-get update && sudo apt-get upgrade -y
+
+3. コアツールを一括インストール:
+   - macOS: brew install git gh docker mise
+   - Linux / WSL2:
+     sudo apt-get install -y git docker.io
+     curl https://mise.run | sh && source ~/.bashrc
+
+4. mise で Python をインストール:
+   mise use --global python@3.9 python@3.10 python@3.11 python@3.12 python@3.13
+
+5. シェル設定にエイリアスを追加 (~/.zshrc または ~/.bashrc):
+   alias claude="claude --dangerously-skip-permissions"
+   設定を反映: source ~/.zshrc または source ~/.bashrc
+
+6. Claude Code スキルディレクトリとテンプレートを作成:
+   mkdir -p ~/.claude/skills
+   ~/.claude/skills/vps-caddy-proxy.md に
+   Caddy + Nginx の Docker Compose テンプレートを書いてください。
+
+7. GitHub CLI 認証を実行してください:
+   gh auth login --hostname github.com --git-protocol ssh
+   ※ブラウザが開きます。表示されたコードを入力して認証を完了してください。
+
+8. 全ツールの動作確認（バージョンをすべて出力）:
+   git --version && gh --version && docker --version && mise --version && node --version
+   gh auth status
+   mise list python
+   ls ~/.claude/skills/`,
+        },
+        {
+          type: 'alert',
+          variant: 'warn',
+          html: '⏸ <strong>gh auth login</strong> will pause and open a browser. Copy the code shown in the terminal → paste it at github.com/login/device → approve. Claude Code resumes automatically.',
+        },
         {
           type: 'mermaid',
           diagram: `sequenceDiagram
     actor You
+    participant CC as Claude Code
     participant gh as gh CLI
     participant GitHub
-    participant SSH as ~/.ssh/id_ed25519
 
-    You->>gh: gh auth login
-    gh->>You: Choose: SSH or HTTPS?
-    You->>gh: SSH
-    gh->>SSH: Generate ed25519 keypair
-    SSH-->>gh: Public key ready
-    gh->>GitHub: Upload public key via API
-    GitHub-->>gh: Key registered ✅
-    gh-->>You: Authenticated as @username`,
+    CC->>CC: Install brew, git, gh, docker, mise
+    CC->>CC: Configure mise Python versions
+    CC->>CC: Add alias to ~/.zshrc
+    CC->>CC: Create ~/.claude/skills/vps-caddy-proxy.md
+    CC->>gh: gh auth login --git-protocol ssh
+    gh->>You: 🔑 Open browser → enter code: XXXX-YYYY
+    You->>GitHub: Paste code + approve
+    GitHub-->>gh: ✅ Authenticated
+    gh-->>CC: SSH key registered
+    CC->>CC: Verify all tools ✅
+    CC-->>You: Phase 1 complete`,
         },
         {
           type: 'checks',
           items: [
-            { id: 'p1-4-a', label: '<code>gh auth login</code> completed — chose SSH protocol' },
-            { id: 'p1-4-b', label: '<code>~/.ssh/id_ed25519.pub</code> visible on GitHub → Settings → SSH Keys' },
+            { id: 'p1-2-a', label: 'Homebrew installed (mac-only) / apt updated (WSL2)' },
+            { id: 'p1-2-b', label: 'git, gh, docker, mise installed' },
+            { id: 'p1-2-c', label: 'Python 3.9–3.13 available (<code>mise list python</code>)' },
+            { id: 'p1-2-d', label: 'Claude alias active in shell (<code>type claude</code> shows alias)' },
+            { id: 'p1-2-e', label: '<code>~/.claude/skills/vps-caddy-proxy.md</code> created' },
+            { id: 'p1-2-f', label: '<code>gh auth status</code> shows Authenticated' },
+            { id: 'p1-2-g', label: '<code>~/.ssh/id_ed25519.pub</code> visible on GitHub → Settings → SSH Keys' },
           ],
-        },
-        {
-          type: 'code',
-          common: 'gh auth login\n# → GitHub.com → SSH → Generate new SSH key → authenticate via browser',
         },
       ],
     },
@@ -332,74 +338,60 @@ mise use --global python@3.9 python@3.10 python@3.11 python@3.12 python@3.13`,
 const phase2: Section = {
   id: 'phase2',
   navLabel: '[ PHASE 2 · CLAUDE ]',
-  title: 'Phase 2 · Claude Code Setup',
+  title: 'Phase 2 · Claude Code Configuration Reference',
+  headerAlert: {
+    variant: 'info',
+    html: '✅ <strong>If you completed Phase 1 Step 2</strong>, Claude Code already set up the alias, skills directory, and GitHub auth automatically. This section documents what was configured and why.',
+  },
   steps: [
     {
       id: 'card-p2-1',
-      titleHtml: 'Install Claude Code',
-      badgeLabel: 'STEP 1',
+      titleHtml: 'Why <code>--dangerously-skip-permissions</code>',
+      badgeLabel: 'REFERENCE',
       blocks: [
+        {
+          type: 'alert',
+          variant: 'danger',
+          html: '⚡ <strong>--dangerously-skip-permissions</strong>: This alias lets Claude Code execute <em>any</em> shell command without per-command prompts. Always include "list commands before executing" in your prompts as a safeguard.',
+        },
+        {
+          type: 'ascii',
+          text: `WITHOUT alias                          WITH alias
+─────────────────────────────          ─────────────────────────────
+$ claude                               $ claude (alias active)
+> run: brew install git                > run: brew install git
+⚠ Allow this command? [y/N]           ✓ Executing... (no prompt)
+> run: mise use --global ...          > run: mise use --global ...
+⚠ Allow this command? [y/N]           ✓ Executing...
+> ...40 more prompts for VPS setup    ✓ All done in one shot
+
+Use with: "list all commands first, then ask for confirmation"`,
+        },
         {
           type: 'checks',
           items: [
-            { id: 'p2-1-a', label: 'Node.js ≥ 18 confirmed (<code>node --version</code>)' },
-            { id: 'p2-1-b', label: '<code>claude --version</code> returns successfully' },
+            { id: 'p2-1-a', label: 'Alias active: <code>type claude</code> shows <code>claude --dangerously-skip-permissions</code>' },
+            { id: 'p2-1-b', label: 'Pre-commit habit: <code>git commit</code> before every <code>claude</code> session' },
           ],
-        },
-        {
-          type: 'code',
-          common: 'npm install -g @anthropic-ai/claude-code\nclaude --version',
         },
       ],
     },
     {
       id: 'card-p2-2',
-      titleHtml: 'Alias Configuration <span style="color:var(--red); font-size:11px; margin-left:8px;">⚠ RISK ACCEPTED</span>',
-      badgeLabel: 'STEP 2',
-      blocks: [
-        {
-          type: 'alert',
-          variant: 'danger',
-          html: '⚡ <strong>--dangerously-skip-permissions</strong>: This alias means Claude Code can execute <em>any</em> command without prompting. Mitigate with: commit before running, add "list commands before executing" to your prompt.',
-        },
-        {
-          type: 'checks',
-          items: [
-            { id: 'p2-2-a', os: 'mac', label: 'Alias added to <code>~/.zshrc</code> (zsh) or <code>~/.bashrc</code> (bash)' },
-            { id: 'p2-2-b', os: 'mac', label: 'Shell reloaded: <code>source ~/.zshrc</code>' },
-            { id: 'p2-2-c', os: 'win', label: 'PowerShell function added to profile (<code>$PROFILE</code>), OR alias in WSL2 <code>~/.bashrc</code>' },
-            { id: 'p2-2-d', os: 'win', label: 'Shell reloaded: <code>. $PROFILE</code> (PowerShell) or <code>source ~/.bashrc</code> (WSL2)' },
-          ],
-        },
-        {
-          type: 'code',
-          mac: '# Add to ~/.zshrc or ~/.bashrc\nalias claude="claude --dangerously-skip-permissions"\nsource ~/.zshrc',
-          win: `# PowerShell — add to $PROFILE (run: notepad $PROFILE)
-function claude { claude.cmd --dangerously-skip-permissions @args }
-
-# --- OR inside WSL2 Ubuntu ---
-# Add to ~/.bashrc
-alias claude="claude --dangerously-skip-permissions"
-source ~/.bashrc`,
-        },
-      ],
-    },
-    {
-      id: 'card-p2-3',
-      titleHtml: 'Create Global Skills Directory',
-      badgeLabel: 'STEP 3',
+      titleHtml: 'Skills Directory Structure',
+      badgeLabel: 'REFERENCE',
       blocks: [
         {
           type: 'alert',
           variant: 'info',
-          html: '💡 Skills are reusable knowledge files that Claude Code reads automatically. Think of them as your personal DevOps playbook.',
+          html: '💡 Skills are reusable knowledge files Claude Code reads automatically. The Phase 1 master prompt wrote <code>vps-caddy-proxy.md</code> — edit it any time to update your templates.',
         },
         {
           type: 'ascii',
           text: `~/.claude/
 ├── CLAUDE.md               ← global system instructions for all projects
 └── skills/
-    └── vps-caddy-proxy.md  ← Caddy + Docker Compose definition (write your template here)
+    └── vps-caddy-proxy.md  ← Caddy + Docker Compose definition
 
 vps-caddy-proxy.md should contain:
 ┌────────────────────────────────────────────────────┐
@@ -424,21 +416,9 @@ vps-caddy-proxy.md should contain:
         {
           type: 'checks',
           items: [
-            { id: 'p2-3-a', label: '<code>~/.claude/skills/</code> directory created' },
-            { id: 'p2-3-b', label: '<code>vps-caddy-proxy.md</code> written with Caddy + Nginx Docker Compose template' },
+            { id: 'p2-2-a', label: '<code>~/.claude/skills/vps-caddy-proxy.md</code> exists and has Caddy + Nginx template' },
+            { id: 'p2-2-b', label: '<code>~/.claude/CLAUDE.md</code> created (optional — global instructions for Claude)' },
           ],
-        },
-        {
-          type: 'code',
-          mac: 'mkdir -p ~/.claude/skills\ntouch ~/.claude/skills/vps-caddy-proxy.md\n# Then edit with your preferred editor and paste the Docker Compose template',
-          win: `# PowerShell
-New-Item -ItemType Directory -Force "$env:USERPROFILE\\.claude\\skills"
-New-Item -ItemType File -Force "$env:USERPROFILE\\.claude\\skills\\vps-caddy-proxy.md"
-notepad "$env:USERPROFILE\\.claude\\skills\\vps-caddy-proxy.md"
-
-# --- OR inside WSL2 ---
-mkdir -p ~/.claude/skills
-touch ~/.claude/skills/vps-caddy-proxy.md`,
         },
       ],
     },

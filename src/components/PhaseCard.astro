@@ -12,7 +12,7 @@ const { step } = Astro.props;
   <div class="card-header">
     <span class="card-title">
       {step.badgeLabel && (
-        <span class:list={['phase-badge', step.badgeVariant === 'warn' ? 'warn' : '']}>{step.badgeLabel}</span>
+        <span class:list={['phase-badge', step.badgeVariant ?? '']}>{step.badgeLabel}</span>
       )}
       <span set:html={step.titleHtml} />
     </span>
