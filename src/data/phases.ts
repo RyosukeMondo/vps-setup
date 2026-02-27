@@ -349,18 +349,17 @@ claude --version`,
         {
           type: 'mermaid',
           diagram: `flowchart TD
-    H["👤 あなた (Step 1完了)"]
-    subgraph PIPELINE["🤖 Claude Code が自動実行"]
-        A["brew / winget インストール"] --> B["git, gh, docker, mise インストール"]
-        B --> C["Python 3.9-3.13 を mise で設定"]
-        C --> D["Claude エイリアスをシェルに追加"]
-        D --> E["skills/vps-caddy-proxy.md 作成"]
-        E --> F["gh auth login (ブラウザで承認)"]
-        F --> G["✅ 全ツール確認"]
-    end
-    H --> A
-    style H        fill:#1a2332,stroke:#58a6ff,color:#e6edf3
-    style PIPELINE fill:#1a2d1a,stroke:#39d353,color:#e6edf3`,
+    H["👤 あなた — Step 1 完了"]
+    A["🤖 brew または winget インストール"]
+    B["🤖 git · gh · docker · mise インストール"]
+    C["🤖 Python 3.9-3.13 を mise で設定"]
+    D["🤖 Claude エイリアスをシェルに追加"]
+    E["🤖 skills/vps-caddy-proxy.md 作成"]
+    F["🤖 gh auth login — ブラウザで承認"]
+    G["✅ 全ツール確認完了"]
+    H --> A --> B --> C --> D --> E --> F --> G
+    style H fill:#1a2332,stroke:#58a6ff,color:#e6edf3
+    style G fill:#1a2d1a,stroke:#39d353,color:#e6edf3`,
         },
         {
           type: 'alert',
