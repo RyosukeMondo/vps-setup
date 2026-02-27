@@ -26,15 +26,24 @@ console.log(`Checking ${diagrams.length} Mermaid diagrams in phases.ts\n`);
 
 let errors = 0;
 
+// U+2014 EM DASH in flowchart node labels aborts the parser after the first
+// node, leaving only a single rectangle. Use U+002D HYPHEN-MINUS instead.
+const FORBIDDEN = [
+  { char: '\u2014', name: 'EM DASH (—)', fix: 'use - (hyphen-minus)' },
+  { char: '\u2013', name: 'EN DASH (–)', fix: 'use - (hyphen-minus)' },
+];
+
 for (const { index, content } of diagrams) {
   const firstLine = content.split('\n')[0].trim();
   const type = firstLine.split(/\s+/)[0];
+
+  errors += checkForbiddenChars(index, type, content);
 
   if (type === 'gantt') {
     errors += checkGantt(index, content);
   } else if (type === 'quadrantChart') {
     errors += checkQuadrant(index, content);
-  } else {
+  } else if (errors === 0) {
     console.log(`  ✓  [${index}] ${type}`);
   }
 }
@@ -44,6 +53,19 @@ console.log(errors === 0
   : `\n❌  ${errors} error(s) found — fix before committing\n`
 );
 process.exit(errors > 0 ? 1 : 0);
+
+// ─── Forbidden character checker ──────────────────────────────────────────────
+function checkForbiddenChars(index, type, content) {
+  let errs = 0;
+  for (const { char, name, fix } of FORBIDDEN) {
+    if (content.includes(char)) {
+      const line = content.split('\n').find(l => l.includes(char)) ?? '';
+      console.error(`  ✗  [${index}] ${type}: ${name} found — ${fix}\n       in: ${line.trim()}`);
+      errs++;
+    }
+  }
+  return errs;
+}
 
 // ─── Gantt checker ────────────────────────────────────────────────────────────
 // Mermaid gantt places each task's label INSIDE its bar.

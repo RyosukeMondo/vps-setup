@@ -28,6 +28,14 @@ npm run check:mermaid
 `gantt` charts are unreliable in Mermaid 10.x (black box, negative rect widths, date parser issues).
 Use `xychart-beta` bar charts instead for time/comparison data — no date format, no label-overflow.
 
+### Forbidden characters in flowchart node labels
+
+| Character | U+ | Symptom | Fix |
+|-----------|-----|---------|-----|
+| `—` em dash | 2014 | Parser aborts after first node → single rectangle | Use `-` (U+002D) |
+
+Always use **hyphen-minus** (`-`) not em dash (`—`) in flowchart node labels.
+
 ### Other known Mermaid 10.x limits
 
 - Cannot connect an external node to a **subgraph ID** as edge target (`H --> SUBGRAPH_ID` fails)
