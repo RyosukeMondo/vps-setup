@@ -826,20 +826,27 @@ const risks: Section = {
     {
       type: 'mermaid',
       diagram: `gantt
-    title Manual vs AI-Delegated Setup Time
+    title 手動アプローチ (合計 315 分)
     dateFormat HH:mm
     axisFormat %H:%M
-    section Manual Approach (315 min)
-    Research and docs    :t1, 00:00, 60m
-    Tool installation    :t2, 01:00, 45m
-    SSH key setup        :t3, 01:45, 30m
-    VPS contract         :t4, 02:15, 30m
-    Docker install       :t5, 02:45, 60m
-    Caddy TLS setup      :t6, 03:45, 90m
-    section AI-Delegated (50 min)
-    Phase 1-2 local      :a1, 00:00, 20m
-    Phase 3 VPS          :a2, 00:20, 15m
-    Phase 4 Claude       :a3, 00:35, 15m`,
+    section 手動アプローチ
+    調査とドキュメント確認    :t1, 00:00, 60m
+    ツールインストール         :t2, 01:00, 45m
+    SSHキーのセットアップ     :t3, 01:45, 30m
+    VPS契約                   :t4, 02:15, 30m
+    Dockerインストール         :t5, 02:45, 60m
+    Caddy TLS設定              :t6, 03:45, 90m`,
+    },
+    {
+      type: 'mermaid',
+      diagram: `gantt
+    title AI委任アプローチ (合計 50 分)
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section AI委任
+    Phase 1-2 ローカル        :a1, 00:00, 20m
+    Phase 3 VPS接続           :a2, 00:20, 15m
+    Phase 4 Claude自動化       :a3, 00:35, 15m`,
     },
     {
       type: 'ascii',
