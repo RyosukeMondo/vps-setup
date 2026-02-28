@@ -388,6 +388,39 @@ Node.js = Claude Code を動かすエンジン
           html: '🔑 <strong>手動インストールが必要な唯一の手順です。</strong> Claude Code の実行にはNode.jsが必要です。Homebrew・git・docker・mise・Python・GitHub認証はすべてStep 2でClaude Codeが自動設定します。',
         },
         {
+          type: 'audience',
+          for: 'beginner',
+          blocks: [
+            { type: 'sectionTitle', text: '🌱 Claude API キーの取得方法' },
+            {
+              type: 'alert',
+              variant: 'info',
+              html: '💳 <strong>APIキーは無料で作成できます。</strong>クレジットカード登録は必要ですが、無料枠があり小規模な使用では請求されません。Claude Code は別途 Claude Pro（月額$20）とは異なる従量課金です。',
+            },
+            {
+              type: 'ascii',
+              text: [
+                'Claude APIキー 取得手順',
+                '════════════════════════════════════════════════════════════',
+                '',
+                '① ブラウザで https://console.anthropic.com を開く',
+                '   → Googleアカウントまたはメールで無料登録',
+                '',
+                '② 左メニュー「API Keys」→「Create Key」',
+                '   → キー名は何でもOK（例: my-claude-key）',
+                '',
+                '③ 表示されたキーをコピー（sk-ant-... で始まる長い文字列）',
+                '   → このウィンドウを閉じると二度と表示されません！',
+                '   → メモ帳などに一時的に保存してください',
+                '',
+                '④ 後で claude を起動するときに貼り付けます',
+                '   → 「Anthropic API Key:」というプロンプトに入力',
+                '════════════════════════════════════════════════════════════',
+              ].join('\n'),
+            },
+          ],
+        },
+        {
           type: 'code',
           mac: `# fnm経由でNode.jsをインストール（Homebrew不要）
 curl -fsSL https://fnm.vercel.app/install | bash
@@ -417,6 +450,39 @@ Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 # Claude Codeをインストール
 npm install -g @anthropic-ai/claude-code
 claude --version`,
+        },
+        {
+          type: 'audience',
+          for: 'beginner',
+          blocks: [
+            { type: 'sectionTitle', text: '🌱 はじめての claude 起動 — 何が起きるか' },
+            {
+              type: 'ascii',
+              text: [
+                '初回起動の流れ',
+                '════════════════════════════════════════════════════════════',
+                '',
+                'STEP 1: ターミナルで claude と入力してEnter',
+                '',
+                'STEP 2: APIキーを求められる',
+                '        Anthropic API Key: ▌',
+                '        → 取得したキー（sk-ant-...）を貼り付けてEnter',
+                '        → キーは画面に表示されません（正常です）',
+                '',
+                'STEP 3: ようこそ画面が表示される',
+                '        Welcome to Claude Code!',
+                '        > ▌   ← ここに日本語で指示を入力できます',
+                '',
+                'STEP 4: 終了するときは /exit または Ctrl+C',
+                '════════════════════════════════════════════════════════════',
+              ].join('\n'),
+            },
+            {
+              type: 'alert',
+              variant: 'info',
+              html: '💡 <strong>APIキーは一度入力すると保存されます。</strong>次回から入力不要です。<code>~/.claude/credentials</code> に暗号化して保存されます。',
+            },
+          ],
         },
         {
           type: 'alert',
@@ -450,6 +516,43 @@ claude --version`,
         {
           type: 'ascii',
           text: p1AutoBox,
+        },
+        {
+          type: 'audience',
+          for: 'beginner',
+          blocks: [
+            { type: 'sectionTitle', text: '🌱 gh auth login — ブラウザ画面の操作方法' },
+            {
+              type: 'alert',
+              variant: 'warn',
+              html: '⏸ <strong>ここでClaude Codeが一時停止します。</strong>ブラウザが開くのでGitHubの画面で操作が必要です。焦らず以下の手順どおりに進めてください。',
+            },
+            {
+              type: 'ascii',
+              text: [
+                'gh auth login の手順',
+                '════════════════════════════════════════════════════════════',
+                '',
+                'STEP 1: ターミナルに以下が表示される',
+                '        ! First copy your one-time code: XXXX-XXXX',
+                '        Press Enter to open github.com in your browser',
+                '        → このコード（XXXX-XXXX）を画面に写真や',
+                '          メモを取ってから Enter を押す',
+                '',
+                'STEP 2: ブラウザが自動で開き「Device Activation」ページ',
+                '        → コード入力欄に XXXX-XXXX を入力',
+                '        → 「Continue」をクリック',
+                '',
+                'STEP 3: 「Authorize github-cli」が表示される',
+                '        → 緑色の「Authorize github-cli」ボタンをクリック',
+                '        → GitHubのパスワードを求められたら入力',
+                '',
+                'STEP 4: ブラウザに「Congratulations!」と表示される',
+                '        → ターミナルに戻ると自動で処理が続行される',
+                '════════════════════════════════════════════════════════════',
+              ].join('\n'),
+            },
+          ],
         },
         {
           type: 'alert',
@@ -633,6 +736,46 @@ $ claude                               $ claude （エイリアス有効）
 > ...VPS設定で40回以上の確認          ✓ 一括完了
 
 プロンプトに必ず含める: "実行前にコマンド一覧を出力し確認を求めてください"`,
+        },
+        {
+          type: 'audience',
+          for: 'beginner',
+          blocks: [
+            { type: 'sectionTitle', text: '🌱 「dangerously」という名前が怖い？— 安全の仕組み' },
+            {
+              type: 'ascii',
+              text: [
+                '安全の仕組み',
+                '════════════════════════════════════════════════════════════',
+                '',
+                '「--dangerously-skip-permissions」= 確認ダイアログをスキップ',
+                '',
+                '  危険なのは... 確認ダイアログなしに Claude が動くこと',
+                '  ↓',
+                '  だからプロンプトに必ず入れる:',
+                '  「実行前にコマンド一覧を出力し、確認を求めてください」',
+                '  ↓',
+                '  Claude は実行前に以下を表示して止まる:',
+                '',
+                '  ┌─────────────────────────────────────────────┐',
+                '  │  実行予定のコマンド:                        │',
+                '  │  1. brew install git                        │',
+                '  │  2. brew install gh                         │',
+                '  │  3. brew install docker                     │',
+                '  │  承認しますか？ (y/N)                       │',
+                '  └─────────────────────────────────────────────┘',
+                '',
+                '  → 内容を確認して「y」で許可、「n」でキャンセル',
+                '  → いつでも Ctrl+C で強制停止できる',
+                '════════════════════════════════════════════════════════════',
+              ].join('\n'),
+            },
+            {
+              type: 'alert',
+              variant: 'info',
+              html: '✅ <strong>つまり:</strong> フラグの名前は怖いですが、プロンプトに<strong>「実行前にコマンド一覧を出力し確認を求めてください」</strong>を含めている限り、Claudeは必ず確認を取ってから動きます。',
+            },
+          ],
         },
         {
           type: 'checks',
@@ -924,6 +1067,44 @@ icacls "$env:USERPROFILE\\.ssh\\xvps.pem" /inheritance:r /grant:r "\${env:USERNA
 # 接続テスト（root として初回接続）
 ssh -i "$env:USERPROFILE\\.ssh\\xvps.pem" root@<VPSのIPアドレス>`,
         },
+        {
+          type: 'audience',
+          for: 'beginner',
+          blocks: [
+            { type: 'sectionTitle', text: '🌱 接続時の「警告メッセージ」について' },
+            {
+              type: 'alert',
+              variant: 'warn',
+              html: '⚠️ <strong>初回接続時に必ず警告メッセージが表示されます — これは正常です。</strong>「yes」と入力してEnterを押してください。',
+            },
+            {
+              type: 'ascii',
+              text: [
+                '初回SSH接続時のメッセージ（正常）',
+                '════════════════════════════════════════════════════════════',
+                '',
+                '$ ssh -i ~/.ssh/xvps.pem root@103.xx.xx.xx',
+                '',
+                'The authenticity of host \'103.xx.xx.xx\' can\'t be established.',
+                'ED25519 key fingerprint is SHA256:xxxxxxxxxxxxxxxxxxxxxxxxxxxx.',
+                'Are you sure you want to continue connecting (yes/no/[fingerprint])?',
+                '',
+                '→ 「yes」と入力してEnterを押す（yだけではNG）',
+                '',
+                'Warning: Permanently added \'103.xx.xx.xx\' to the list of known hosts.',
+                '→ この行が出たら成功。次回からこのメッセージは出ない。',
+                '',
+                'Welcome to Ubuntu 22.04.x LTS ...',
+                'root@my-server:~#  ← サーバーに入れた！',
+                '════════════════════════════════════════════════════════════',
+                '',
+                '⚠️  もし「Permission denied (publickey)」と出たら:',
+                '   → pem ファイルの場所またはパーミッション設定を確認',
+                '   → chmod 600 ~/.ssh/xvps.pem を実行したか確認',
+              ].join('\n'),
+            },
+          ],
+        },
       ],
     },
     {
@@ -959,6 +1140,43 @@ ssh -i "$env:USERPROFILE\\.ssh\\xvps.pem" root@<VPSのIPアドレス>`,
 - プロキシ:  Caddy（TLS自動取得）
 - アプリ:    Nginx（サンプルページ）
 ═══════════════════════════════════════════`,
+        },
+        {
+          type: 'audience',
+          for: 'beginner',
+          blocks: [
+            { type: 'sectionTitle', text: '🌱 server.md の作り方（ファイル作成手順）' },
+            {
+              type: 'alert',
+              variant: 'info',
+              html: '📝 <strong>server.md はただのテキストファイルです。</strong>メモ帳や VSCode で作成できます。ターミナルから作る方法が最も簡単です。',
+            },
+            {
+              type: 'code',
+              mac: `# プロジェクトフォルダを作成して移動
+mkdir ~/my-vps-project
+cd ~/my-vps-project
+
+# nano エディタで server.md を作成
+nano server.md
+# → 上の例の内容を入力（IPとドメインは自分のものに変更）
+# → 保存: Ctrl+O → Enter → 終了: Ctrl+X`,
+              win: `# プロジェクトフォルダを作成して移動
+mkdir "$env:USERPROFILE\\my-vps-project"
+cd "$env:USERPROFILE\\my-vps-project"
+
+# メモ帳で server.md を作成
+notepad server.md
+# → 上の例の内容を入力（IPとドメインは自分のものに変更）
+# → ファイル → 名前を付けて保存
+# → 「すべてのファイル(*.*)」を選択して「server.md」で保存`,
+            },
+            {
+              type: 'alert',
+              variant: 'warn',
+              html: '⚠️ <strong>IPアドレスとドメインは必ず自分のものに書き換えてください。</strong>203.0.113.42 はサンプルです。実際のIPはXServer VPSパネルで確認してください。',
+            },
+          ],
         },
         {
           type: 'checks',
@@ -1037,6 +1255,50 @@ const phase4: Section = {
 cd /path/to/your/project
 
 claude`,
+        },
+        {
+          type: 'audience',
+          for: 'beginner',
+          blocks: [
+            { type: 'sectionTitle', text: '🌱 Phase 4 実行中 — こんな画面が出ます（正常です）' },
+            {
+              type: 'ascii',
+              text: [
+                'Phase 4 実行中の画面例（約20〜60分かかります）',
+                '════════════════════════════════════════════════════════════',
+                '',
+                '  プロンプトを貼り付けた後、Claude が以下を表示:',
+                '',
+                '  「実行予定のコマンド:',
+                '   1. ssh root@103.xx.xx.xx',
+                '   2. useradd deploy',
+                '   3. ...全部で30項目',
+                '   承認しますか？(y/N)」',
+                '',
+                '  → 内容を確認して y を入力',
+                '',
+                '  その後、数百行のログが流れる（すべて正常）:',
+                '  Reading package lists... Done',
+                '  Building dependency tree... Done',
+                '  Fetching container: caddy:alpine ...',
+                '  Starting caddy ... done',
+                '',
+                '  最後に以下が表示されたら完了:',
+                '  「https://domain.xvps.jp が公開されました ✅」',
+                '════════════════════════════════════════════════════════════',
+              ].join('\n'),
+            },
+            {
+              type: 'alert',
+              variant: 'info',
+              html: '🕐 <strong>所要時間の目安:</strong> インターネット回線によりますが <strong>20〜60分</strong> が通常です。ログが流れている間は正常動作中なので、そのまま待ってください。途中で止まったように見えても、5分程度は待ちましょう。',
+            },
+            {
+              type: 'alert',
+              variant: 'warn',
+              html: '⚠️ <strong>途中でターミナルを閉じないでください。</strong>SSH接続が切れてしまいます。スリープや画面ロックはOKです。ターミナルウィンドウは開いたままにしてください。',
+            },
+          ],
         },
       ],
     },
