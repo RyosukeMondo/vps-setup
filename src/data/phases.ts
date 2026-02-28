@@ -57,7 +57,9 @@ function cjkWidth(s: string): number {
     const cp = ch.codePointAt(0) ?? 0;
     if (
       cp === 0x00B7               || // · MIDDLE DOT (EA Ambiguous → 2 in CJK font)
+      cp === 0x2014               || // — EM DASH (EA Ambiguous → 2 in CJK font)
       (cp >= 0x2190 && cp <= 0x21FF) || // ← ↑ → ↓ Arrows (EA Ambiguous → 2)
+      (cp >= 0x25A0 && cp <= 0x25FF) || // ● ▶ ◀ ▲ Geometric Shapes (EA Ambiguous → 2)
       (cp >= 0x1100  && cp <= 0x115F)  || // Hangul Jamo
       (cp >= 0x2E80  && cp <= 0x303E)  || // CJK Radicals + Symbols
       (cp >= 0x3041  && cp <= 0xA4CF)  || // Hiragana … Yi Radicals
@@ -76,15 +78,46 @@ function cjkWidth(s: string): number {
   return w;
 }
 
-/** Build a ┌─…─┐ box: each line is right-padded to `innerWidth` display cols. */
-function makeBox(lines: string[], innerWidth: number): string {
+/** Build a ┌─…─┐ box: each line is right-padded to `innerWidth` display cols.
+ *  Optional `indent` string is prepended to every row (top, content, bottom). */
+function makeBox(lines: string[], innerWidth: number, indent = ''): string {
   const rule = '─'.repeat(innerWidth);
   const pad = (content: string) =>
-    '│' + content + ' '.repeat(Math.max(0, innerWidth - cjkWidth(content))) + '│';
-  return ['┌' + rule + '┐', ...lines.map(pad), '└' + rule + '┘'].join('\n');
+    indent + '│' + content + ' '.repeat(Math.max(0, innerWidth - cjkWidth(content))) + '│';
+  return [indent + '┌' + rule + '┐', ...lines.map(pad), indent + '└' + rule + '┘'].join('\n');
+}
+
+/** Two boxes side by side. sepLines must have same display width on every row. */
+function twoColBox(
+  indent: string,
+  leftLines: string[], leftW: number,
+  sepLines: string[],   // length = leftLines.length + 2 (top, ...content, bottom)
+  rightLines: string[], rightW: number,
+): string {
+  const lRule = '─'.repeat(leftW), rRule = '─'.repeat(rightW);
+  const rows = [
+    indent + '┌' + lRule + '┐' + sepLines[0] + '┌' + rRule + '┐',
+    ...leftLines.map((lc, i) =>
+      indent + '│' + lc + ' '.repeat(Math.max(0, leftW - cjkWidth(lc))) + '│' +
+      sepLines[i + 1] +
+      '│' + rightLines[i] + ' '.repeat(Math.max(0, rightW - cjkWidth(rightLines[i]))) + '│'
+    ),
+    indent + '└' + lRule + '┘' + sepLines[sepLines.length - 1] + '└' + rRule + '┘',
+  ];
+  return rows.join('\n');
 }
 
 // ─── OVERVIEW ─────────────────────────────────────────────────────────────────
+
+const aiToolsBox = makeBox([
+  '  Claude Pro 以上を推奨（月額$20 / 約3,000円）',
+  '  https://claude.ai → 右上「Upgrade」',
+  '',
+  '  なぜProが必要？',
+  '  → Claude Code（ターミナルで使うAI）は',
+  '     無料プランでは動きません',
+  '  → 長い作業でも制限にかかりにくい',
+], 52, '  ');
 
 const overview: Section = {
   id: 'overview',
@@ -102,15 +135,7 @@ const overview: Section = {
 ════════════════════════════════════════════════════════════
 
 ① AIツール
-  ┌────────────────────────────────────────────────────┐
-  │  Claude Pro 以上を推奨（月額$20 / 約3,000円）      │
-  │  https://claude.ai → 右上「Upgrade」               │
-  │                                                    │
-  │  なぜProが必要？                                   │
-  │  → Claude Code（ターミナルで使うAI）は             │
-  │     無料プランでは動きません                       │
-  │  → 長い作業でも制限にかかりにくい                  │
-  └────────────────────────────────────────────────────┘
+${aiToolsBox}
 
 ② PC推奨スペック
   Mac: MacBook Air / Pro（M1チップ以降）
@@ -267,6 +292,14 @@ const overview: Section = {
 
 // ─── PHASE 1 ──────────────────────────────────────────────────────────────────
 
+const claudeCodeBox = makeBox([
+  '  Claude Code（AI）',
+  '  → コマンドを考えて実行',
+  '  → 設定ファイルを書き換え',
+  '  → エラーが出たら自分で修正',
+  '  → 完了したら結果を報告',
+], 45, '  ');
+
 // Phase 1 Step 2 automation flow — box with CJK-aware padding (57-col inner width)
 const p1AutoBox = [
   '👤 あなた — Step 1 完了',
@@ -322,13 +355,7 @@ const phase1: Section = {
   │  「GitHubに接続して認証して」
   │  「VPSにDockerをインストールして」
   ↓
-  ┌─────────────────────────────────────────────┐
-  │  Claude Code（AI）                          │
-  │  → コマンドを考えて実行                     │
-  │  → 設定ファイルを書き換え                   │
-  │  → エラーが出たら自分で修正                 │
-  │  → 完了したら結果を報告                     │
-  └─────────────────────────────────────────────┘
+${claudeCodeBox}
 
 Node.js = Claude Code を動かすエンジン
   └→ 車のエンジンのようなもの。普段は意識しない。まず入れるだけ。
@@ -377,12 +404,25 @@ claude --version`,
 # wingetでNode.jsをインストール
 winget install OpenJS.NodeJS.LTS
 
-# Windows Terminalを再起動してから:
+# Windows Terminalを「完全に閉じて」再起動してから実行:
 node --version   # → v22.x.x
+
+# ─── PowerShellのセキュリティ設定（初回のみ） ───────────────
+# Windowsはデフォルトで外部スクリプトの実行をブロックします。
+# 以下のコマンドで「署名済みスクリプトのみ許可」に変更:
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+# ↑ 「Y」を押してEnter（一度だけ実行すればOK）
+# ─────────────────────────────────────────────────────────────
 
 # Claude Codeをインストール
 npm install -g @anthropic-ai/claude-code
 claude --version`,
+        },
+        {
+          type: 'alert',
+          variant: 'info',
+          os: 'win',
+          html: '🪟 <strong>PowerShell実行ポリシーについて（Windows）</strong><br>Windowsは安全のためPowerShellスクリプトをブロックします。<code>Set-ExecutionPolicy RemoteSigned -Scope CurrentUser</code>を実行し「Y」→Enterで、自分のユーザーだけスクリプト実行が可能になります（システム全体は変更しません）。',
         },
         {
           type: 'checks',
@@ -543,6 +583,25 @@ claude --version`,
 
 // ─── PHASE 2 ──────────────────────────────────────────────────────────────────
 
+const skillsDirBox = makeBox([
+  '  # Caddy Reverse Proxy - Docker Compose Template',
+  '',
+  '  ## docker-compose.yml',
+  '  services:',
+  '    caddy:',
+  '      image: caddy:alpine',
+  '      ports: ["80:80","443:443"]',
+  '      volumes: [./Caddyfile:/etc/caddy/Caddyfile]',
+  '    web:',
+  '      image: nginx:alpine',
+  '      expose: ["80"]',
+  '',
+  '  ## Caddyfile',
+  '  {DOMAIN} {',
+  '    reverse_proxy web:80',
+  '  }',
+], 52);
+
 const phase2: Section = {
   id: 'phase2',
   navLabel: '[ PHASE 2 · CLAUDE ]',
@@ -602,24 +661,7 @@ $ claude                               $ claude （エイリアス有効）
     └── vps-caddy-proxy.md  ← Caddy + Docker Compose テンプレート
 
 vps-caddy-proxy.md の内容例:
-┌────────────────────────────────────────────────────┐
-│  # Caddy Reverse Proxy — Docker Compose Template   │
-│                                                    │
-│  ## docker-compose.yml                             │
-│  services:                                         │
-│    caddy:                                          │
-│      image: caddy:alpine                           │
-│      ports: ["80:80","443:443"]                    │
-│      volumes: [./Caddyfile:/etc/caddy/Caddyfile]   │
-│    web:                                            │
-│      image: nginx:alpine                           │
-│      expose: ["80"]                                │
-│                                                    │
-│  ## Caddyfile                                      │
-│  {DOMAIN} {                                        │
-│    reverse_proxy web:80                            │
-│  }                                                 │
-└────────────────────────────────────────────────────┘`,
+${skillsDirBox}`,
         },
         {
           type: 'checks',
@@ -634,6 +676,108 @@ vps-caddy-proxy.md の内容例:
 };
 
 // ─── PHASE 3 ──────────────────────────────────────────────────────────────────
+
+const serverFormBox = makeBox([
+  ' プラン:      [2GB RAM プラン]  ← 推奨最小限',
+  ' 契約期間:    [1ヶ月]  ← まず試すなら1ヶ月',
+  ' OS:          [Ubuntu 22.04 LTS]  ← 必ずこれを選ぶ',
+  ' SSHキー:     [SSH Keyの登録] ← 次のステップで説明',
+  ' ポート設定:  SSH(22) ON  ← デフォルトのままでOK',
+], 54, '  ');
+
+const sshKeyBox1 = makeBox([
+  ' キー名:     [my-vps-key       ]  ← 何でもOK',
+  ' 生成方法:   ● 自動生成  ← 必ずこれを選択',
+  '             ○ 手動入力',
+  '',
+  '             [確認画面へ進む]',
+], 54, '  ');
+
+const sshKeyBox2 = makeBox([
+  '  ✅ SSHキーを登録しました',
+  '',
+  '  [📥 ダウンロードする]  ← 必ずクリック！',
+  '',
+  '  ⚠️  このウィンドウを閉じると',
+  '      二度とダウンロードできません',
+], 54, '  ');
+
+const ipAddressBox = makeBox([
+  '  XServer VPS パネル',
+  '──────────────────────────────────────────────────────',
+  '  サーバー名: my-server',
+  '  IPアドレス: [103.xx.xx.xx]  ← ここをコピー！',
+  '  OS:         Ubuntu 22.04 LTS',
+  '  プラン:     2GB',
+  '  稼働状況:  ● 稼働中',
+], 54, '  ');
+
+const sshDiagramBox = twoColBox(
+  '  ',
+  ['  ターミナル  '], 14,
+  ['  暗号化通信   ', ' ←── SSH ──→ ', '               '],
+  ['  XServer VPS        '], 21,
+);
+
+const sshKeyComparison = twoColBox(
+  '  ',
+  [' xvps.pem', '（あなたの鍵）'], 15,
+  ['          ', '  照合    ', ' ←────→ ', '          '],
+  ['  サーバーの「公開鍵」', '（XServerが設定済み）'], 25,
+);
+
+const sshExplainText = `SSH（セキュアシェル）= 遠隔操作の暗号化電話回線
+════════════════════════════════════════════════════════════
+
+  あなたのパソコン              世界のどこかにあるサーバー
+${sshDiagramBox}
+  （画面・キーボード）           （画面もキーボードもない）
+
+  → ターミナルに入力したコマンドがインターネットを越えて
+    サーバーに届き、サーバーが実行して結果を返してくれる
+  → サーバーには画面もキーボードもない —
+    ターミナルがその代わり
+
+なぜ .pem ファイルが必要？
+────────────────────────────
+  パスワード方式 = 誰かが何千回も推測できる（危険）
+
+  鍵ファイル方式（.pem）= 数千文字のランダムデータ
+  → 推測不可能。鍵と鍵穴が一致するときだけ接続できる
+
+${sshKeyComparison}
+  ↑ 絶対に他人に見せないこと！GitHubにも上げないこと！
+
+════════════════════════════════════════════════════════════`;
+
+const sshStepsBox = (() => {
+  const box = makeBox([
+    '  Welcome to Ubuntu 22.04.x LTS      ',
+    '  root@my-server:~#                  ',
+  ], 38, '          ').split('\n');
+  box[2] += ' ← サーバーを操作中！';
+  return box.join('\n');
+})();
+
+const sshStepsText = `SSH接続 ステップバイステップ
+════════════════════════════════════════════════════════════
+
+  STEP 1: xvps.pem を安全な場所に移動
+          ダウンロードフォルダ → ~/.ssh/ フォルダ
+
+  STEP 2: 鍵ファイルの権限を「自分だけ読める」に設定
+          （Macのみ必須 / Windowsはコマンドで対応）
+
+  STEP 3: SSHコマンドで接続
+          ssh -i [鍵ファイル] root@[IPアドレス]
+              ↑                    ↑
+           鍵ファイルの場所       VPSパネルで確認したIP
+
+  STEP 4: 接続成功すると以下のような表示が出る:
+${sshStepsBox}
+          （終了は exit と入力して Enter）
+
+════════════════════════════════════════════════════════════`;
 
 const phase3: Section = {
   id: 'phase3',
@@ -674,13 +818,7 @@ const phase3: Section = {
               text: `サーバー申し込みフォーム
 ════════════════════════════════════════════════════════════
 
-  ┌──────────────────────────────────────────────────────┐
-  │ プラン:      [2GB RAM プラン]  ← 推奨最小限          │
-  │ 契約期間:    [1ヶ月]  ← まず試すなら1ヶ月            │
-  │ OS:          [Ubuntu 22.04 LTS]  ← 必ずこれを選ぶ    │
-  │ SSHキー:     [SSH Keyの登録] ← 次のステップで説明    │
-  │ ポート設定:  SSH(22) ON  ← デフォルトのままでOK      │
-  └──────────────────────────────────────────────────────┘
+${serverFormBox}
 
   「確認画面へ進む」→「お支払いへ進む」→ カード情報入力
   → 完了メールが届く（数分後にVPSが起動）`,
@@ -693,22 +831,9 @@ const phase3: Section = {
 
 申し込みフォームの「SSH Keyの登録」をクリック:
 
-  ┌──────────────────────────────────────────────────────┐
-  │ キー名:     [my-vps-key       ]  ← 何でもOK         │
-  │ 生成方法:   ● 自動生成  ← 必ずこれを選択            │
-  │             ○ 手動入力                               │
-  │                                                      │
-  │             [確認画面へ進む]                         │
-  └──────────────────────────────────────────────────────┘
+${sshKeyBox1}
                           ↓ 次の画面
-  ┌──────────────────────────────────────────────────────┐
-  │  ✅ SSHキーを登録しました                            │
-  │                                                      │
-  │  [📥 ダウンロードする]  ← 必ずクリック！             │
-  │                                                      │
-  │  ⚠️  このウィンドウを閉じると                        │
-  │      二度とダウンロードできません                    │
-  └──────────────────────────────────────────────────────┘
+${sshKeyBox2}
 
   → ダウンロードフォルダに xserver-vps.pem が保存される
   → その後「登録する」→ 申し込み完了へ進む
@@ -734,15 +859,7 @@ dir "$env:USERPROFILE\\Downloads"
 申し込み完了後 → VPSパネルにログイン:
   https://secure.xserver.ne.jp/xapanel/vps/
 
-  ┌──────────────────────────────────────────────────────┐
-  │  XServer VPS パネル                                  │
-  ├──────────────────────────────────────────────────────┤
-  │  サーバー名: my-server                               │
-  │  IPアドレス: [103.xx.xx.xx]  ← ここをコピー！       │
-  │  OS:         Ubuntu 22.04 LTS                        │
-  │  プラン:     2GB                                     │
-  │  稼働状況:  ● 稼働中                                │
-  └──────────────────────────────────────────────────────┘
+${ipAddressBox}
 
 このIPアドレスはこの後の手順でよく使います。
 メモ帳などにコピーしておいてください。
@@ -774,60 +891,12 @@ dir "$env:USERPROFILE\\Downloads"
             { type: 'sectionTitle', text: '🌱 SSHとは？（初心者向け解説）' },
             {
               type: 'ascii',
-              text: `SSH（セキュアシェル）= 遠隔操作の暗号化電話回線
-════════════════════════════════════════════════════════════
-
-  あなたのパソコン              世界のどこかにあるサーバー
-  ┌─────────────┐  暗号化通信  ┌─────────────────────┐
-  │  ターミナル  │ ←── SSH ──→ │  XServer VPS        │
-  └─────────────┘              └─────────────────────┘
-  （画面・キーボード）           （画面もキーボードもない）
-
-  → ターミナルに入力したコマンドがインターネットを越えて
-    サーバーに届き、サーバーが実行して結果を返してくれる
-  → サーバーには画面もキーボードもない —
-    ターミナルがその代わり
-
-なぜ .pem ファイルが必要？
-────────────────────────────
-  パスワード方式 = 誰かが何千回も推測できる（危険）
-
-  鍵ファイル方式（.pem）= 数千文字のランダムデータ
-  → 推測不可能。鍵と鍵穴が一致するときだけ接続できる
-
-  ┌──────────────┐         ┌────────────────────────┐
-  │ xvps.pem     │  照合   │  サーバーの「公開鍵」   │
-  │（あなたの鍵） │ ←────→ │ （XServerが設定済み）   │
-  └──────────────┘         └────────────────────────┘
-  ↑ 絶対に他人に見せないこと！GitHubにも上げないこと！
-
-════════════════════════════════════════════════════════════`,
+              text: sshExplainText,
             },
             { type: 'sectionTitle', text: '鍵ファイルの移動と接続の流れ' },
             {
               type: 'ascii',
-              text: `SSH接続 ステップバイステップ
-════════════════════════════════════════════════════════════
-
-  STEP 1: xvps.pem を安全な場所に移動
-          ダウンロードフォルダ → ~/.ssh/ フォルダ
-
-  STEP 2: 鍵ファイルの権限を「自分だけ読める」に設定
-          （Macのみ必須 / Windowsはコマンドで対応）
-
-  STEP 3: SSHコマンドで接続
-          ssh -i [鍵ファイル] root@[IPアドレス]
-              ↑                    ↑
-           鍵ファイルの場所       VPSパネルで確認したIP
-
-  STEP 4: 接続成功すると以下のような表示が出る:
-          ┌──────────────────────────────────────┐
-          │  Welcome to Ubuntu 22.04.x LTS       │
-          │  root@my-server:~#                   │ ← サーバーを操作中！
-          └──────────────────────────────────────┘
-          （終了は exit と入力して Enter）
-
-════════════════════════════════════════════════════════════`,
+              text: sshStepsText,
             },
           ],
         },
@@ -1055,6 +1124,11 @@ claude`,
 
 // ─── RISK MATRIX ──────────────────────────────────────────────────────────────
 
+const principlesBox = makeBox([
+  '  server.md + skills/ = Single Source of Truth',
+  '  人間は何も覚えない → ファイルがすべてを記憶する',
+], 53, '         ');
+
 const risks: Section = {
   id: 'risks',
   navLabel: '[ RISK MATRIX ]',
@@ -1136,10 +1210,7 @@ const risks: Section = {
 ════════════════════════════════════════════════════════════════════
 
 [思考1] 宣言的インフラ管理 (Declarative Infrastructure)
-         ┌─────────────────────────────────────────────────────┐
-         │  server.md + skills/ = Single Source of Truth      │
-         │  人間は何も覚えない → ファイルがすべてを記憶する  │
-         └─────────────────────────────────────────────────────┘
+${principlesBox}
 
 [思考2] パッケージ隔離 (Dependency Isolation)
          OS Python  ──────────────── 絶対に触らない
