@@ -227,8 +227,9 @@ ${aiToolsBox}
         direction TB
         P4A["👤 claude を起動"] --> P4B["🤖 server.mdを読み込み"]
         P4B --> P4C["🤖 deployユーザー作成・鍵登録"]
-        P4C --> P4D["🤖 root SSH無効化 🔒"]
-        P4D --> P4E["🤖 Docker・Compose インストール"]
+        P4C --> P4D["🤖 SSH強化・パスワード認証無効化 🔒"]
+        P4D --> P4D2["🤖 UFW・fail2ban・自動更新"]
+        P4D2 --> P4E["🤖 Docker・Compose インストール"]
         P4E --> P4F["🤖 Caddy・Nginx デプロイ"]
         P4F --> P4G(["✅ HTTPSサイト公開"])
     end
@@ -1278,7 +1279,7 @@ claude`,
         {
           type: 'alert',
           variant: 'warn',
-          html: '🔐 <strong>セキュリティファーストのアプローチ:</strong> Claudeは <code>root</code> として<em>一度だけ</em>接続してdeployユーザーを作成し、直後にroot SSHを無効化します。Docker作業はすべて <code>deploy</code> ユーザーで実行されます。',
+          html: '🔐 <strong>セキュリティファーストのアプローチ:</strong> Claudeは <code>root</code> として<em>一度だけ</em>接続してdeployユーザーを作成し、root SSH + パスワード認証を無効化、UFWファイアウォール・fail2ban・自動セキュリティ更新を設定します。Docker作業はすべて <code>deploy</code> ユーザーで実行されます。',
         },
         {
           type: 'code',
@@ -1294,16 +1295,37 @@ claude`,
    パスワードなしでSSH接続できるようにしてください。
 
 3. deployユーザーでのSSH接続を確認してから、
-   rootのSSHログインを無効化してください:
-   - /etc/ssh/sshd_config: PermitRootLogin を no に変更
-   - sudo systemctl restart sshd
+   SSHセキュリティを強化してください:
+   /etc/ssh/sshd_config で以下を設定:
+   - PermitRootLogin no
+   - PasswordAuthentication no
+   - ChallengeResponseAuthentication no
+   sudo systemctl restart sshd
    ※ deploy接続確認前に実行しないでください。
 
 4. deployユーザーでSSH接続し、残りの作業を続けてください。
 
-5. Ubuntu 24.04上にDockerおよびDocker Composeをインストールしてください。
+5. UFWファイアウォールを設定してください:
+   - sudo ufw default deny incoming
+   - sudo ufw default allow outgoing
+   - sudo ufw allow 22/tcp
+   - sudo ufw allow 80/tcp
+   - sudo ufw allow 443/tcp
+   - sudo ufw --force enable
 
-6. ~/.claude/skills/vps-caddy-proxy.md を読み込み、VPS上にCaddyを用いた
+6. fail2banをインストール・有効化してください:
+   - sudo apt install -y fail2ban
+   - /etc/fail2ban/jail.local を作成し、sshd jail を有効化
+   - sudo systemctl enable --now fail2ban
+
+7. 自動セキュリティアップデートを設定してください:
+   - sudo apt install -y unattended-upgrades
+   - sudo dpkg-reconfigure -plow unattended-upgrades（自動で有効化）
+
+8. Ubuntu 24.04上にDockerおよびDocker Composeをインストールしてください。
+   deployユーザーをdockerグループに追加してください。
+
+9. ~/.claude/skills/vps-caddy-proxy.md を読み込み、VPS上にCaddyを用いた
    リバースプロキシ環境と、サンプルのWebページ（Nginx）のDockerコンテナを
    構築し、起動してください。サブドメインは server.md のものを適用してください。`,
         },
@@ -1323,11 +1345,18 @@ claude`,
     CC->>VPS: /home/deploy/.ssh/ を作成
     CC->>VPS: id_ed25519.pub → authorized_keys に追加
     CC->>VPS: deployユーザーでSSH確認 ✅
-    CC->>VPS: PermitRootLogin no に設定
+    CC->>VPS: PermitRootLogin no + PasswordAuthentication no
     CC->>VPS: systemctl restart sshd
-    Note over VPS: rootログイン無効化 🔒
+    Note over VPS: root + パスワード認証 無効化 🔒
 
     CC->>VPS: deployとしてSSH再接続
+
+    Note over CC,VPS: 🛡 ファイアウォール + 防御
+    CC->>VPS: ufw: 22/80/443のみ許可 + enable
+    CC->>VPS: fail2ban インストール + sshd jail 有効化
+    CC->>VPS: unattended-upgrades 自動セキュリティ更新
+
+    Note over CC,VPS: 🐳 Docker + デプロイ
     CC->>VPS: apt install docker.io docker-compose
     CC->>CC: ~/.claude/skills/vps-caddy-proxy.md を読み込み
     CC->>VPS: docker-compose.yml + Caddyfile を配置
@@ -1341,6 +1370,10 @@ claude`,
             { id: 'p4-2-a', label: 'sudo権限付きの <code>deploy</code> ユーザー作成済み' },
             { id: 'p4-2-b', label: '<code>deploy</code> ユーザーでSSHログイン可能（パスワード不要）' },
             { id: 'p4-2-c', label: 'root SSHが無効 — <code>ssh root@VPS_IP</code> が拒否される' },
+            { id: 'p4-2-c2', label: 'パスワード認証が無効 — 鍵認証のみ許可' },
+            { id: 'p4-2-c3', label: 'UFWファイアウォール有効 — <code>sudo ufw status</code> で22/80/443のみ許可' },
+            { id: 'p4-2-c4', label: 'fail2banが稼働中 — <code>sudo systemctl status fail2ban</code>' },
+            { id: 'p4-2-c5', label: '自動セキュリティ更新が有効 — <code>sudo systemctl status unattended-upgrades</code>' },
             { id: 'p4-2-d', label: '<code>docker ps</code> でcaddy + nginxコンテナが稼働中' },
             { id: 'p4-2-e', label: '<code>https://domain.xvps.jp</code> が有効なTLS証明書で表示' },
             { id: 'p4-2-f', label: '<code>server.md</code> 更新済み: <code>User: deploy</code>' },
