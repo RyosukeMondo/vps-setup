@@ -1147,10 +1147,23 @@ notepad server.md
           ],
         },
         {
+          type: 'alert',
+          variant: 'danger',
+          html: '🔒 <strong>SSH秘密鍵のリポジトリ流出を防止してください。</strong>プロジェクトをGitで管理する場合、<code>.gitignore</code> に <code>*.pem</code> を追加してください。秘密鍵がGitHubに公開されると、第三者がサーバーに侵入できます。',
+        },
+        {
+          type: 'code',
+          common: `# プロジェクトルートに .gitignore を作成
+echo "*.pem" >> .gitignore
+echo ".env" >> .gitignore
+echo ".env.*" >> .gitignore`,
+        },
+        {
           type: 'checks',
           items: [
             { id: 'p3-3-a', label: '実際のIPとドメインを記入した <code>server.md</code> をプロジェクトルートに作成済み' },
             { id: 'p3-3-b', label: 'DNS AレコードがVPS IPを指している（<code>dig domain.xvps.jp A</code> で確認）' },
+            { id: 'p3-3-c', label: '<code>.gitignore</code> に <code>*.pem</code> を追加済み（SSH鍵の流出防止）' },
           ],
         },
       ],
