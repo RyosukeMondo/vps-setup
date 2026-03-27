@@ -790,7 +790,7 @@ ${skillsDirBox}`,
 const serverFormBox = makeBox([
   ' プラン:      [2GB RAM プラン]  ← 推奨最小限',
   ' 契約期間:    [1ヶ月]  ← まず試すなら1ヶ月',
-  ' OS:          [Ubuntu 22.04 LTS]  ← 必ずこれを選ぶ',
+  ' OS:          [Ubuntu 24.04 LTS]  ← 必ずこれを選ぶ',
   ' SSHキー:     [SSH Keyの登録] ← 次のステップで説明',
   ' ポート設定:  SSH(22) ON  ← デフォルトのままでOK',
 ], 54, '  ');
@@ -817,7 +817,7 @@ const ipAddressBox = makeBox([
   '──────────────────────────────────────────────────────',
   '  サーバー名: my-server',
   '  IPアドレス: [103.xx.xx.xx]  ← ここをコピー！',
-  '  OS:         Ubuntu 22.04 LTS',
+  '  OS:         Ubuntu 24.04 LTS',
   '  プラン:     2GB',
   '  稼働状況:  ● 稼働中',
 ], 54, '  ');
@@ -862,7 +862,7 @@ ${sshKeyComparison}
 
 const sshStepsBox = (() => {
   const box = makeBox([
-    '  Welcome to Ubuntu 22.04.x LTS      ',
+    '  Welcome to Ubuntu 24.04.x LTS      ',
     '  root@my-server:~#                  ',
   ], 38, '          ').split('\n');
   box[2] += ' ← サーバーを操作中！';
@@ -1061,7 +1061,7 @@ ssh -i "$env:USERPROFILE\\.ssh\\xvps.pem" root@<VPSのIPアドレス>`,
                 'Warning: Permanently added \'103.xx.xx.xx\' to the list of known hosts.',
                 '→ この行が出たら成功。次回からこのメッセージは出ない。',
                 '',
-                'Welcome to Ubuntu 22.04.x LTS ...',
+                'Welcome to Ubuntu 24.04.x LTS ...',
                 'root@my-server:~#  ← サーバーに入れた！',
                 '════════════════════════════════════════════════════════════',
                 '',
