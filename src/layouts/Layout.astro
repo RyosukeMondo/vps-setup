@@ -874,15 +874,20 @@ const { title = 'VPS Setup Guide — AI-Driven Infrastructure' } = Astro.props;
   document.addEventListener('click', function(e) {
     // Copy button — highest priority
     if (e.target.matches('.copy-btn')) {
-      const code = e.target.nextElementSibling.querySelector('code').textContent;
-      navigator.clipboard.writeText(code).then(() => {
-        e.target.textContent = 'COPIED!';
-        e.target.classList.add('copied');
-        setTimeout(() => {
-          e.target.textContent = 'COPY';
-          e.target.classList.remove('copied');
-        }, 1800);
-      });
+      const btn = e.target;
+      const codeEl = btn.nextElementSibling?.querySelector('code');
+      if (!codeEl) return;
+      const text = codeEl.textContent;
+      (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+        .then(() => {
+          btn.textContent = 'COPIED!';
+          btn.classList.add('copied');
+          setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1800);
+        })
+        .catch(() => {
+          btn.textContent = 'FAILED';
+          setTimeout(() => { btn.textContent = 'COPY'; }, 1800);
+        });
       return;
     }
 
