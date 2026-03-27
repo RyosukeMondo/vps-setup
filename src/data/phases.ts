@@ -578,7 +578,7 @@ claude --version`,
 
 4. PowerShellプロファイルにエイリアスを追加（$PROFILE）:
    以下をプロファイルファイルに追記してください:
-   function claude { claude --dangerously-skip-permissions @args }
+   function claude { & claude.cmd --dangerously-skip-permissions @args }
    設定を反映: . $PROFILE
 
 5. Claude Codeスキルディレクトリとテンプレートを作成:
