@@ -8,7 +8,8 @@
 #   docker build | image build | builder build | buildx build|bake
 #   docker compose build | watch, and --build on compose up/create/run
 # and makes `docker compose up|create` pass --no-build, so a compose service with
-# a missing image fails instead of silently building.
+# a missing image fails instead of silently building. `compose run` has no --no-build,
+# so it is refused when its service (or a depends_on) has build: and no local image.
 # It also refuses `docker buildx history` (2026-10-16: dockerd restarted during it
 # and all containers stayed down).
 #
@@ -34,6 +35,47 @@ docker-build-guard: refused on this VPS: $1
   One-off override (logged): VPS_ALLOW_BUILD=1 docker ...
 EOF
   exit 1
+}
+
+# `docker compose run` has no --no-build: it builds a service that has a build: section and
+# no image. Returns 0 (and sets WOULD_BUILD) when the target service or one of its
+# depends_on (unless --no-deps) is such a service. $1 = index of "run" in ARGV.
+run_would_build() {
+  local r=$1 k svc="" nodeps=0 a
+  k=$((r + 1))
+  while (( k < ${#ARGV[@]} )); do
+    a="${ARGV[k]}"
+    case "$a" in
+      --no-deps) nodeps=1; k=$((k + 1)) ;;
+      --cap-add|--cap-drop|-e|--env|--env-from-file|--entrypoint|-l|--label|--name|-p|--publish|--pull|-u|--user|-v|--volume|-w|--workdir) k=$((k + 2)) ;;
+      -*) k=$((k + 1)) ;;
+      *) svc="$a"; break ;;
+    esac
+  done
+  [[ -z "$svc" ]] && return 1
+  local cfg
+  cfg="$("$REAL" "${ARGV[@]:0:r}" config --format json 2>/dev/null)" || return 1
+  local candidates
+  candidates="$(printf '%s' "$cfg" | python3 -c '
+import json, sys
+svc, nodeps = sys.argv[1], sys.argv[2] == "1"
+c = json.load(sys.stdin); services = c.get("services", {}); project = c.get("name", "")
+todo, seen = [svc], []
+while todo:
+    s = todo.pop()
+    if s in seen or s not in services: continue
+    seen.append(s)
+    if not nodeps: todo.extend(services[s].get("depends_on") or {})
+for s in seen:
+    d = services[s]
+    if "build" in d: print(s, d.get("image") or f"{project}-{s}")
+' "$svc" "$nodeps" 2>/dev/null)" || return 1
+  local name image
+  while read -r name image; do
+    [[ -z "$name" ]] && continue
+    if ! "$REAL" image inspect "$image" >/dev/null 2>&1; then WOULD_BUILD="$name ($image)"; return 0; fi
+  done <<<"$candidates"
+  return 1
 }
 
 ARGV=("$@")
@@ -84,7 +126,9 @@ case "$cmd" in
           [[ "$a" == "--" ]] && break
           [[ "$a" == "--build" ]] && refuse "docker compose $csub --build"
         done
-        if [[ "$csub" != "run" ]]; then
+        if [[ "$csub" == "run" ]]; then
+          run_would_build "$j" && refuse "docker compose run: $WOULD_BUILD has a build: section and no local image, so compose would build it"
+        else
           has_no_build=0
           for a in "${ARGV[@]:j+1}"; do [[ "$a" == "--no-build" ]] && has_no_build=1; done
           if (( has_no_build == 0 )); then

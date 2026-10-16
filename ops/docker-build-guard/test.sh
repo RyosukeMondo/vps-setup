@@ -6,6 +6,9 @@ here="$(cd "$(dirname "$0")" && pwd)"
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 cat >"$tmp/real" <<'EOF'
 #!/bin/bash
+# `compose ... config --format json` and `image inspect` answer from env; anything else records argv.
+case " $* " in *" config --format json "*) printf '%s' "${STUB_CONFIG:-{\}}"; exit 0 ;; esac
+if [[ "$1" == image && "$2" == inspect ]]; then [[ " ${STUB_IMAGES:-} " == *" $3 "* ]]; exit; fi
 printf '%s\n' "$@" >"$STUB_OUT"
 exit 7
 EOF
@@ -82,6 +85,17 @@ passes "compose|-f|a.yml|-p|p|up|--no-build|-d|--force-recreate|app" compose -f 
 passes "compose|up|-d|--no-build|app" compose up -d --no-build app
 passes "compose|create|--no-build" compose create
 passes "--context|default|compose|--env-file|.env|up|--no-build|-d" --context default compose --env-file .env up -d
+
+# --- compose run: refused only when it would build
+export STUB_CONFIG='{"name":"zk","services":{"migrate":{"build":{"context":"."},"image":"zukkey-migrate","depends_on":{"db":{}}},"db":{"image":"postgres:17"},"tool":{"build":{"context":"."}},"web":{"image":"zk-web","depends_on":{"tool":{}}}}}'
+STUB_IMAGES="zukkey-migrate zk-tool" passes "compose|--profile|tools|run|--rm|migrate" compose --profile tools run --rm migrate
+STUB_IMAGES="" refused compose --profile tools run --rm migrate
+STUB_IMAGES="zukkey-migrate" refused compose run --rm -e A=1 tool sh
+STUB_IMAGES="zukkey-migrate zk-tool" passes "compose|run|--rm|-e|A=1|tool|sh" compose run --rm -e A=1 tool sh
+STUB_IMAGES="zukkey-migrate" refused compose run web
+STUB_IMAGES="zukkey-migrate" passes "compose|run|--no-deps|web" compose run --no-deps web
+STUB_IMAGES="" passes "compose|run|db|psql" compose run db psql
+unset STUB_CONFIG
 
 # --- override
 rm -f "$STUB_OUT"; VPS_ALLOW_BUILD=1 "$here/docker" build . >/dev/null 2>&1
