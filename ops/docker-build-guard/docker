@@ -1,0 +1,97 @@
+#!/bin/bash
+# docker-build-guard — installed as /usr/local/bin/docker on the production VPS.
+#
+# The VPS (6 cores, 11 GB, ~100 production containers) must never build images:
+# builds there starved every service (swap ~95%). Images are built on a
+# workstation, pushed to ghcr.io, and only pulled here. This wrapper sits before
+# /usr/bin/docker in PATH and refuses the commands that build:
+#   docker build | image build | builder build | buildx build|bake
+#   docker compose build | watch, and --build on compose up/create/run
+# and makes `docker compose up|create` pass --no-build, so a compose service with
+# a missing image fails instead of silently building.
+# It also refuses `docker buildx history` (2026-10-16: dockerd restarted during it
+# and all containers stayed down).
+#
+# Everything else is passed through unchanged with exec (same argv, stdio, exit code).
+# Override for a deliberate one-off: VPS_ALLOW_BUILD=1 docker ...  (logged).
+# Tests: ./test.sh   Install: ./install.sh <ssh-host>
+
+REAL="${DOCKER_BUILD_GUARD_REAL:-/usr/bin/docker}"
+LOG="${DOCKER_BUILD_GUARD_LOG:-/var/log/docker-build-guard.log}"
+
+log() {
+  printf '%s user=%s pid=%s ppid=%s verdict=%s argv=%q\n' \
+    "$(date -Is)" "${USER:-?}" "$$" "$PPID" "$1" "${*:2}" >>"$LOG" 2>/dev/null || true
+}
+
+refuse() {
+  log refused "${ARGV[@]}"
+  cat >&2 <<EOF
+docker-build-guard: refused on this VPS: $1
+  Images are not built here. Build on the workstation and push to GHCR, then pull:
+    (workstation) the repo's deploy script, e.g. scripts/deploy.sh or deploy/deploy.sh
+  Pattern: zukkey/scripts/lib/ghcr.sh. Guard source: vps-setup/ops/docker-build-guard.
+  One-off override (logged): VPS_ALLOW_BUILD=1 docker ...
+EOF
+  exit 1
+}
+
+ARGV=("$@")
+if [[ "${VPS_ALLOW_BUILD:-}" == "1" ]]; then
+  log override "${ARGV[@]}"
+  exec "$REAL" "$@"
+fi
+
+# Skip docker's global options to find the command. Options taking a value:
+# -H/--host -c/--context --config -l/--log-level --tlscacert --tlscert --tlskey
+i=0
+while (( i < ${#ARGV[@]} )); do
+  a="${ARGV[i]}"
+  case "$a" in
+    -H|--host|-c|--context|--config|-l|--log-level|--tlscacert|--tlscert|--tlskey) i=$((i + 2)) ;;
+    -*) i=$((i + 1)) ;;
+    *) break ;;
+  esac
+done
+cmd="${ARGV[i]:-}"
+sub="${ARGV[i + 1]:-}"
+
+case "$cmd" in
+  build) refuse "docker build" ;;
+  image|builder) [[ "$sub" == "build" ]] && refuse "docker $cmd build" ;;
+  buildx)
+    case "$sub" in
+      build|b|bake) refuse "docker buildx $sub" ;;
+      history) refuse "docker buildx history (crashed dockerd on 2026-10-16)" ;;
+    esac ;;
+  compose)
+    # Skip compose's global options. Options taking a value:
+    # -f/--file -p/--project-name --profile --env-file --project-directory --ansi --progress --parallel
+    j=$((i + 1))
+    while (( j < ${#ARGV[@]} )); do
+      a="${ARGV[j]}"
+      case "$a" in
+        -f|--file|-p|--project-name|--profile|--env-file|--project-directory|--ansi|--progress|--parallel) j=$((j + 2)) ;;
+        -*) j=$((j + 1)) ;;
+        *) break ;;
+      esac
+    done
+    csub="${ARGV[j]:-}"
+    case "$csub" in
+      build|watch) refuse "docker compose $csub" ;;
+      up|create|run)
+        for a in "${ARGV[@]:j+1}"; do
+          [[ "$a" == "--" ]] && break
+          [[ "$a" == "--build" ]] && refuse "docker compose $csub --build"
+        done
+        if [[ "$csub" != "run" ]]; then
+          has_no_build=0
+          for a in "${ARGV[@]:j+1}"; do [[ "$a" == "--no-build" ]] && has_no_build=1; done
+          if (( has_no_build == 0 )); then
+            exec "$REAL" "${ARGV[@]:0:j+1}" --no-build "${ARGV[@]:j+1}"
+          fi
+        fi ;;
+    esac ;;
+esac
+
+exec "$REAL" "$@"
